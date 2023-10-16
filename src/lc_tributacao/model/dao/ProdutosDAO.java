@@ -3,11 +3,10 @@ package lc_tributacao.model.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import static lc_tributacao.controller.conexao.GenericMysqlDAO.database;
 import lc_tributacao.model.entities.Produtos;
+import lc_tributacao.util.DataHora;
 import lc_tributacao.view.TelaInicial;
 
 /**
@@ -18,8 +17,6 @@ public class ProdutosDAO {
 
     final String dataBase = database; // Nome do BANCO DE DADOS do rede.txt
     private Connection conn = null;
-    private final SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private final Date dataHoraAtual = new Date();
 
     public ProdutosDAO(Connection conn) throws Exception {
         this.conn = conn;
@@ -58,7 +55,7 @@ public class ProdutosDAO {
                 pstm.setDouble(15, produto.getIpiAliq());
                 pstm.setDouble(16, produto.getIcmsAliq());
                 pstm.setDouble(17, produto.getIcmsAliqRedBc());
-                pstm.setString(18, sdf1.format(dataHoraAtual));
+                pstm.setString(18, DataHora.getDataHoraAtual());
                 pstm.executeUpdate();
             }
 
