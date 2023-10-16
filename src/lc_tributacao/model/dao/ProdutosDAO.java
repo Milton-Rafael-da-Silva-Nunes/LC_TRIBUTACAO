@@ -33,7 +33,6 @@ public class ProdutosDAO {
     }
 
     public void InserirProdutosNoBanco(List<Produtos> listaProdutos) throws Exception {
-
         try (PreparedStatement pstm = conn.prepareStatement("INSERT INTO lc_tributacao.produtos(id_produto, barras, nome, cst, cfop, ncm, cest, pis, cofins, ipi, origem, genero, pis_aliq, cofins_aliq, ipi_aliq, icms_aliq, icms_aliq_red_bc, data_hora) "
                 + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 

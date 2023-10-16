@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import lc_tributacao.controller.conexao.GenericMysqlDAO;
 import lc_tributacao.model.entities.Produtos;
-import lc_tributacao.view.TelaInicial;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -30,64 +29,63 @@ public class ProdutosExportService {
         listaProdutos();
     }
 
-    public void gerarProdutosXls(String filePath) throws IOException {
-        criarProdutosXls(listaProduto, filePath + "\\CLASSIFICAO DE TRIBUTOS.xls");
-
+    public Boolean gerarProdutosXls(String filePath) throws IOException {
+        if (listaProduto.size() > 0) {
+            criarProdutosXls(listaProduto, filePath + "\\CLASSIFICAO DE TRIBUTOS.xls");
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private void criarProdutosXls(List<Produtos> listaProduto, String filePath) throws IOException {
-        if (listaProduto.size() > 1) {
+        try (Workbook workbook = new HSSFWorkbook(); FileOutputStream fileOut = new FileOutputStream(filePath)) {
+            Sheet sheet = workbook.createSheet("Produtos");
+            int rowIdx = 0;
 
-            try (Workbook workbook = new HSSFWorkbook(); FileOutputStream fileOut = new FileOutputStream(filePath)) {
-                Sheet sheet = workbook.createSheet("Produtos");
-                int rowIdx = 0;
+            // Crie o cabeçalho da planilha
+            Row cabecalho = sheet.createRow(rowIdx++);
+            cabecalho.createCell(0).setCellValue("ID_PRODUTO");
+            cabecalho.createCell(1).setCellValue("BARRAS");
+            cabecalho.createCell(2).setCellValue("NOME");
+            cabecalho.createCell(3).setCellValue("CST");
+            cabecalho.createCell(4).setCellValue("CFOP");
+            cabecalho.createCell(5).setCellValue("NCM");
+            cabecalho.createCell(6).setCellValue("CEST");
+            cabecalho.createCell(7).setCellValue("PIS");
+            cabecalho.createCell(8).setCellValue("COFINS");
+            cabecalho.createCell(9).setCellValue("IPI");
+            cabecalho.createCell(10).setCellValue("ORIGEM");
+            cabecalho.createCell(11).setCellValue("ALIQ_PIS");
+            cabecalho.createCell(12).setCellValue("ALIQ_COFINS");
+            cabecalho.createCell(13).setCellValue("ALIQ_IPI");
+            cabecalho.createCell(14).setCellValue("ICMS_ALIQ");
+            cabecalho.createCell(15).setCellValue("ICMS_RED_BASE_CAL");
 
-                // Crie o cabeçalho da planilha
-                Row cabecalho = sheet.createRow(rowIdx++);
-                cabecalho.createCell(0).setCellValue("ID_PRODUTO");
-                cabecalho.createCell(1).setCellValue("BARRAS");
-                cabecalho.createCell(2).setCellValue("NOME");
-                cabecalho.createCell(3).setCellValue("CST");
-                cabecalho.createCell(4).setCellValue("CFOP");
-                cabecalho.createCell(5).setCellValue("NCM");
-                cabecalho.createCell(6).setCellValue("CEST");
-                cabecalho.createCell(7).setCellValue("PIS");
-                cabecalho.createCell(8).setCellValue("COFINS");
-                cabecalho.createCell(9).setCellValue("IPI");
-                cabecalho.createCell(10).setCellValue("ORIGEM");
-                cabecalho.createCell(11).setCellValue("ALIQ_PIS");
-                cabecalho.createCell(12).setCellValue("ALIQ_COFINS");
-                cabecalho.createCell(13).setCellValue("ALIQ_IPI");
-                cabecalho.createCell(14).setCellValue("ICMS_ALIQ");
-                cabecalho.createCell(15).setCellValue("ICMS_RED_BASE_CAL");
-
-                // Preencha a planilha com os dados dos produtos
-                for (Produtos produto : listaProduto) {
-                    Row linha = sheet.createRow(rowIdx++);
-                    linha.createCell(0).setCellValue(produto.getIdProduto());
-                    linha.createCell(1).setCellValue(produto.getBarras());
-                    linha.createCell(2).setCellValue(produto.getNome());
-                    linha.createCell(3).setCellValue(produto.getCst());
-                    linha.createCell(4).setCellValue(produto.getCfop());
-                    linha.createCell(5).setCellValue(produto.getNcm());
-                    linha.createCell(6).setCellValue(produto.getCest());
-                    linha.createCell(7).setCellValue(produto.getPis());
-                    linha.createCell(8).setCellValue(produto.getCofins());
-                    linha.createCell(9).setCellValue(produto.getIpi());
-                    linha.createCell(10).setCellValue(produto.getOrigem());
-                    linha.createCell(11).setCellValue(produto.getPisAliq());
-                    linha.createCell(12).setCellValue(produto.getCofinsAliq());
-                    linha.createCell(13).setCellValue(produto.getIpiAliq());
-                    linha.createCell(14).setCellValue(produto.getIcmsAliq());
-                    linha.createCell(15).setCellValue(produto.getIcmsAliqRedBc());
-                }
-                workbook.write(fileOut);
-
-            } catch (IOException e) {
-                e.printStackTrace();
+            // Preencha a planilha com os dados dos produtos
+            for (Produtos produto : listaProduto) {
+                Row linha = sheet.createRow(rowIdx++);
+                linha.createCell(0).setCellValue(produto.getIdProduto());
+                linha.createCell(1).setCellValue(produto.getBarras());
+                linha.createCell(2).setCellValue(produto.getNome());
+                linha.createCell(3).setCellValue(produto.getCst());
+                linha.createCell(4).setCellValue(produto.getCfop());
+                linha.createCell(5).setCellValue(produto.getNcm());
+                linha.createCell(6).setCellValue(produto.getCest());
+                linha.createCell(7).setCellValue(produto.getPis());
+                linha.createCell(8).setCellValue(produto.getCofins());
+                linha.createCell(9).setCellValue(produto.getIpi());
+                linha.createCell(10).setCellValue(produto.getOrigem());
+                linha.createCell(11).setCellValue(produto.getPisAliq());
+                linha.createCell(12).setCellValue(produto.getCofinsAliq());
+                linha.createCell(13).setCellValue(produto.getIpiAliq());
+                linha.createCell(14).setCellValue(produto.getIcmsAliq());
+                linha.createCell(15).setCellValue(produto.getIcmsAliqRedBc());
             }
-        } else {
-            TelaInicial.getLogError("Nenhum produto encontrado!");
+            workbook.write(fileOut);
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

@@ -60,7 +60,7 @@ public final class TelaInicial extends javax.swing.JFrame {
         btnExportar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle(getVersaoPrograma());
+        setTitle("Lc Tributos <<V 1.0>>");
         setResizable(false);
 
         jPanel1.setBackground(new java.awt.Color(102, 102, 102));
@@ -210,22 +210,20 @@ public final class TelaInicial extends javax.swing.JFrame {
 
     private void btnExportarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportarActionPerformed
         if (chamarTelaExportar()) {
-            if (validarArquivoExcel()) {
-                exportarProdutosXls();
-                JOptionPane.showMessageDialog(null, "Tabela exportada com sucesso! \n\n<html><b>Caminho:</b> " + filePath + "</html>", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
+            if(validarArquivoExcel()) {
+                if(exportarProdutosXls()) {
+                    JOptionPane.showMessageDialog(null, "Tabela exportada com sucesso! \n\n<html><b>Caminho:</b> " + filePath + "</html>", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    getLogError("Atenção... \nNenhum produto encontrado na base!");
+                }
             }
         } else {
-            JOptionPane.showMessageDialog(null, "<html>Atenção...<br>Selecione um caminho para Exportar!</html>", "Atenção", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null, "<html><b>Atenção</b>...<br>Selecione um caminho para Exportar!</html>", "Atenção", JOptionPane.WARNING_MESSAGE);
         }
     }//GEN-LAST:event_btnExportarActionPerformed
 
     private Boolean chamarTelaImportar() {
-        JFileChooser fileChooser = null;
-
-        if (fileChooser == null) {
-            fileChooser = new JFileChooser();
-        }
-
+        JFileChooser fileChooser  = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Arquivos Excel", "xls"/*, "xlsx"*/));
         int returnValue = fileChooser.showOpenDialog(null);
 
@@ -318,13 +316,14 @@ public final class TelaInicial extends javax.swing.JFrame {
         }
     }
 
-    public void exportarProdutosXls() {
+    public boolean exportarProdutosXls() {
         try {
             ProdutosExportService prodExportServic = new ProdutosExportService(conn);
-            prodExportServic.gerarProdutosXls(filePath);
+            return prodExportServic.gerarProdutosXls(filePath);
         } catch (SQLException | IOException e) {
             getLogError(e.getMessage());
         }
+        return false;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
