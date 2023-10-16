@@ -32,7 +32,7 @@ public class ProdutosDAO {
         updateNCM();
         updateCEST();
         updateCST();
-        updatePISeCOFINSeALIQUOTAS();
+        updatePisCofinsIpiOrigemAliquotas();
     }
 
     public void InserirProdutosNoBanco(List<Produtos> listaProdutos) throws Exception {
@@ -98,9 +98,9 @@ public class ProdutosDAO {
 
     private void updateCST() throws Exception {
         try (PreparedStatement pstm = conn.prepareStatement(
-                "UPDATE " + dataBase + ".produto          p "
+                "UPDATE " + dataBase + ".produto p "
                 + "INNER JOIN lc_tributacao.produtos t ON t.id_produto = p.id "
-                + "INNER JOIN " + dataBase + ".cst        c ON c.codigotributario = t.cst "
+                + "INNER JOIN " + dataBase + ".cst c ON c.codigotributario = t.cst "
                 + "SET p.id_cst = c.id;")) {
 
             int resultado = pstm.executeUpdate();
@@ -109,18 +109,15 @@ public class ProdutosDAO {
         } catch (SQLException e) {
             TelaInicial.getLogError("Erro ao executar Update CST -> " + e.getMessage());
         }
-
         // Executar CFOP ao final do CST (depende dele)
         updateCFOP();
     }
 
     private void updateCFOP() throws Exception {
-        try (PreparedStatement pstm = conn.prepareStatement("UPDATE " + dataBase + ".produto "
-                + "SET id_cfop = CASE id_cst "
-                + "WHEN 10 THEN 355 "
-                + "WHEN 21 THEN 355 "
-                + "ELSE 289 "
-                + "END;")) {
+        try (PreparedStatement pstm = conn.prepareStatement("UPDATE " + dataBase + ".produto p "
+                + "INNER JOIN lc_tributacao.produtos pp ON pp.id_produto = p.id "
+                + "INNER JOIN " + dataBase + ".cfop c ON  c.codigocfop = pp.cfop "
+                + "SET p.id_cfop = c.id;")) {
 
             pstm.executeUpdate();
 
@@ -132,14 +129,19 @@ public class ProdutosDAO {
         }
     }
 
-    private void updatePISeCOFINSeALIQUOTAS() throws Exception {
+    private void updatePisCofinsIpiOrigemAliquotas() throws Exception {
         try (PreparedStatement pstm = conn.prepareStatement("UPDATE " + dataBase + ".produto p "
                 + "INNER JOIN lc_tributacao.produtos t ON t.id_produto = p.id "
                 + "SET p.trib_pissaida= t.pis,"
                 + "p.trib_cofinssaida = t.cofins,"
+                + "p.trib_ipisaida = t.ipi,"
+                + "p.origem_produto = t.origem,"
+                + "p.trib_genero = t.genero,"
                 + "p.trib_pisaliqsaida = t.pis_aliq,"
                 + "p.trib_cofinsaliqsaida = t.cofins_aliq,"
-                + "p.trib_icmsaliqsaida = t.icms_aliq;")) {
+                + "p.trib_ipialiqsaida = t.ipi_aliq,"
+                + "p.trib_icmsaliqsaida = t.icms_aliq, "
+                + "p.trib_icmsaliqredbasecalcsaida = t.icms_aliq_red_bc;")) {
 
             pstm.executeUpdate();
 

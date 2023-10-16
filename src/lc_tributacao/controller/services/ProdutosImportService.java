@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import javax.swing.JOptionPane;
 import lc_tributacao.model.entities.Produtos;
 import lc_tributacao.view.TelaInicial;
 import org.apache.poi.ss.usermodel.Row;
@@ -39,15 +38,13 @@ public class ProdutosImportService {
                 Produtos produto = parseLinha(row);
                 produtos.add(produto);
             }
-
-            TelaInicial.getLogError("Produtos da planilha: " + contarLinhasExcel(filePath) + "\n");
-            JOptionPane.showMessageDialog(null, "Sucesso!","Tabela atualizada com sucesso!", JOptionPane.INFORMATION_MESSAGE);
+            TelaInicial.getLogError("\nProdutos da planilha: " + contarLinhasExcel(filePath) + "\n");
         } catch (FileNotFoundException e) {
-            TelaInicial.getLogError("Arquivo não encontrado: " + e.getMessage() + "\n");
+            TelaInicial.getLogError("\nArquivo não encontrado: " + e.getMessage() + "\n");
         } catch (NumberFormatException e) {
-            TelaInicial.getLogError("Formato numerico invalido: " + e.getMessage() + "\n");
+            TelaInicial.getLogError("\nFormato numerico invalido: " + e.getMessage() + "\n");
         } catch (IllegalStateException e) {
-            TelaInicial.getLogError("");
+            TelaInicial.getLogError("Erro geral: " + e.getMessage());
         }
         return validarObjetoProdutos(produtos);
     }
@@ -164,8 +161,8 @@ public class ProdutosImportService {
 
         if (ncmCell != null) {
             ncmCell.setCellType(CellType.STRING);
-            String genero = ncmCell.getStringCellValue();
-            produto.setGenero(getNcmFormatado(genero.substring(0, 2)));
+            String genero = getNcmFormatado(ncmCell.getStringCellValue());
+            produto.setGenero(genero.substring(0, 2));
         } else {
             produto.setGenero("");
         }
@@ -212,7 +209,7 @@ public class ProdutosImportService {
         }
         return integerValue;
     }
-    
+
     private Double returnDoubleValue(Cell doubleValueCell) {
         double doubleValue = 0.0;
         if (doubleValueCell.getCellType() == CellType.STRING) {
@@ -254,7 +251,7 @@ public class ProdutosImportService {
         }
         return cestValue;
     }
-    
+
     private String getPisCofinsIpiFormatado(String pisCofinsIpi) {
         String pisCofinsIpiValue;
         switch (pisCofinsIpi.trim().length()) {

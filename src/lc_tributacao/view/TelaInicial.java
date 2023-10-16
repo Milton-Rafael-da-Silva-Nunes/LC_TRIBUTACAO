@@ -16,6 +16,7 @@ import lc_tributacao.model.dao.ProdutosDAO;
 import lc_tributacao.controller.services.CriarBancoService;
 import lc_tributacao.controller.services.ProdutosExportService;
 import lc_tributacao.controller.services.ProdutosImportService;
+import static lc_tributacao.util.Versao.getVersaoPrograma;
 
 /**
  *
@@ -27,7 +28,7 @@ public final class TelaInicial extends javax.swing.JFrame {
     Connection conn = new GenericMysqlDAO().getConnection();
 
     public TelaInicial() throws Exception {
-        criarBancoAuxiliar();
+        //criarBancoAuxiliar();
         initComponents();
         imagemLc();
         lblCaminhoArq.setText(" Ex: Documentos\\AJUSTE - TRIBUTARIO.xls");
@@ -54,12 +55,12 @@ public final class TelaInicial extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         txtLogError = new javax.swing.JTextArea();
         jLabel4 = new javax.swing.JLabel();
-        btnExecutar = new javax.swing.JButton();
+        btnImportar = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
-        btnexportar = new javax.swing.JButton();
+        btnExportar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Lc Tributos <<V 1.0>>");
+        setTitle(getVersaoPrograma());
         setResizable(false);
 
         jPanel1.setBackground(new java.awt.Color(102, 102, 102));
@@ -122,12 +123,12 @@ public final class TelaInicial extends javax.swing.JFrame {
         jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jLabel4.setText("Log:");
 
-        btnExecutar.setFont(new java.awt.Font("Dialog", 0, 14)); // NOI18N
-        btnExecutar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/lc_tributacao/imagem/check.png"))); // NOI18N
-        btnExecutar.setText("Importar");
-        btnExecutar.addActionListener(new java.awt.event.ActionListener() {
+        btnImportar.setFont(new java.awt.Font("Dialog", 0, 14)); // NOI18N
+        btnImportar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/lc_tributacao/imagem/check.png"))); // NOI18N
+        btnImportar.setText("Importar");
+        btnImportar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnExecutarActionPerformed(evt);
+                btnImportarActionPerformed(evt);
             }
         });
 
@@ -136,12 +137,12 @@ public final class TelaInicial extends javax.swing.JFrame {
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel5.setText("Padrões de Colunas:");
 
-        btnexportar.setFont(new java.awt.Font("Dialog", 0, 14)); // NOI18N
-        btnexportar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/lc_tributacao/imagem/export-excel.png"))); // NOI18N
-        btnexportar.setText("Exportar");
-        btnexportar.addActionListener(new java.awt.event.ActionListener() {
+        btnExportar.setFont(new java.awt.Font("Dialog", 0, 14)); // NOI18N
+        btnExportar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/lc_tributacao/imagem/export-excel.png"))); // NOI18N
+        btnExportar.setText("Exportar");
+        btnExportar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnexportarActionPerformed(evt);
+                btnExportarActionPerformed(evt);
             }
         });
 
@@ -156,9 +157,9 @@ public final class TelaInicial extends javax.swing.JFrame {
                     .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnexportar, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnExportar, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnExecutar, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(btnImportar, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
@@ -183,8 +184,8 @@ public final class TelaInicial extends javax.swing.JFrame {
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 307, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btnExecutar, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnexportar, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btnImportar, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnExportar, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 29, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -195,22 +196,36 @@ public final class TelaInicial extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btnExecutarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExecutarActionPerformed
-        //if (validarArquivoExcel()) {
-            chamarTelaImportar();
-            lerExcel();
-        /*} else {
-            JOptionPane.showMessageDialog(null, "<html>Atenção...<br>Selecione um arquivo para iniciar!</html>", "Atenção", JOptionPane.WARNING_MESSAGE);
-        }*/
-    }//GEN-LAST:event_btnExecutarActionPerformed
+    private void btnImportarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImportarActionPerformed
+        if (chamarTelaImportar()) {
+            if (validarArquivoExcel()) {
+                criarBancoAuxiliar();
+                lerExcel();
+                JOptionPane.showMessageDialog(null, "Produtos atualizados com sucesso!", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "<html><b>Atenção</b>...<br>Selecione um arquivo para iniciar!</html>", getVersaoPrograma(), JOptionPane.WARNING_MESSAGE);
+        }
+    }//GEN-LAST:event_btnImportarActionPerformed
 
-    private void btnexportarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnexportarActionPerformed
-        chamarTelaExportar();
-        exportarProdutosXls();
-    }//GEN-LAST:event_btnexportarActionPerformed
+    private void btnExportarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportarActionPerformed
+        if (chamarTelaExportar()) {
+            if (validarArquivoExcel()) {
+                exportarProdutosXls();
+                JOptionPane.showMessageDialog(null, "Tabela exportada com sucesso! \n\n<html><b>Caminho:</b> " + filePath + "</html>", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "<html>Atenção...<br>Selecione um caminho para Exportar!</html>", "Atenção", JOptionPane.WARNING_MESSAGE);
+        }
+    }//GEN-LAST:event_btnExportarActionPerformed
 
-    private void chamarTelaImportar() {
-        JFileChooser fileChooser = new JFileChooser();
+    private Boolean chamarTelaImportar() {
+        JFileChooser fileChooser = null;
+
+        if (fileChooser == null) {
+            fileChooser = new JFileChooser();
+        }
+
         fileChooser.setFileFilter(new FileNameExtensionFilter("Arquivos Excel", "xls"/*, "xlsx"*/));
         int returnValue = fileChooser.showOpenDialog(null);
 
@@ -224,12 +239,14 @@ public final class TelaInicial extends javax.swing.JFrame {
                     .replace("Users\\", ""));
             lblCaminhoArq.setForeground(Color.GRAY);
             System.out.println("Arquivo Excel selecionado: " + filePath);
+            return true;
         } else {
-            getLogError("Nenhum arquivo selecionado.");
+            System.out.println("Nenhum arquivo selecionado.");
         }
+        return false;
     }
-    
-    private void chamarTelaExportar() {
+
+    private Boolean chamarTelaExportar() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); // Permite selecionar apenas pastas
         int returnValue = fileChooser.showOpenDialog(null);
@@ -244,9 +261,11 @@ public final class TelaInicial extends javax.swing.JFrame {
                     .replace("Users\\", ""));
             lblCaminhoArq.setForeground(Color.GRAY);
             System.out.println("Pasta de exportação selecionada: " + filePath);
+            return true;
         } else {
-            getLogError("Nenhuma pasta selecionada.");
+            System.out.println("Nenhuma pasta selecionada.");
         }
+        return false;
     }
 
     private void lerExcel() {
@@ -309,8 +328,8 @@ public final class TelaInicial extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnExecutar;
-    private javax.swing.JButton btnexportar;
+    private javax.swing.JButton btnExportar;
+    private javax.swing.JButton btnImportar;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
