@@ -1,5 +1,6 @@
 package lc_tributacao.controller.services;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -8,29 +9,29 @@ import lc_tributacao.view.TelaInicial;
 
 /**
  *
- * @author MIGRAÇÃO
+ * @author Rafael Nunes
  */
-public class CriarBancoService extends GenericMysqlDAO {
+public class BancoDadosService extends GenericMysqlDAO {
 
     private Connection conn = null;
 
-    public CriarBancoService(Connection conn) {
+    public BancoDadosService(Connection conn) {
         this.conn = conn;
     }
 
-    public void criarBanco() throws SQLException {
+    public void criarBancoLcTributacao() throws SQLException {
         PreparedStatement pstm = null;
         try {
             pstm = conn.prepareStatement("CREATE DATABASE IF NOT EXISTS lc_tributacao;");
             pstm.executeUpdate();
         } catch (SQLException e) {
-            TelaInicial.getLogError("Erro ao criar banco de dados (banco: lc_tributação): " + e.getMessage());
+            TelaInicial.getLog("Erro ao criar banco de dados (banco: lc_tributação): " + e.getMessage());
         } finally {
             GenericMysqlDAO.closeStatement(pstm);
         }
     }
 
-    public void criarTabelaProdutos() throws SQLException {
+    public void criarTabelaProduto() throws SQLException {
         PreparedStatement pstm = null;
         deletarTabelaProdutos();
         try {
@@ -60,9 +61,30 @@ public class CriarBancoService extends GenericMysqlDAO {
             pstm.executeUpdate();
 
         } catch (SQLException e) {
-            TelaInicial.getLogError("Erro ao criar tabela 'produtos' (banco: lc_tributação): " + e.getMessage());
+            TelaInicial.getLog("Erro ao criar tabela 'produtos' (banco: lc_tributação): " + e.getMessage());
         } finally {
             GenericMysqlDAO.closeStatement(pstm);
+        }
+    }
+
+    public void criarBackupTabelaProduto() throws IOException {
+        String comando = String.format("mysqldump --host=localhost --user=" + usuario + " --password=" + senha + " " + database + " produto > C:\\Users\\Public\\Documents\\produto.sql");
+
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", comando);
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
+
+            int exitCode = process.waitFor();
+            if (exitCode == 0) {
+                TelaInicial.getLog("Caminho backup: C:/Users/Public/Documents/produto.sql");
+                System.out.println("Backup criado com sucesso.");
+            } else {
+                TelaInicial.getLog("**** Erro ao criar o backup ****");
+            }
+        } catch (IOException | InterruptedException e) {
+            TelaInicial.getLog("Erro inesperado! \n\n" + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 

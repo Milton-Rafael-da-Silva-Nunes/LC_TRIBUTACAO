@@ -5,7 +5,7 @@ import java.util.Date;
 
 /**
  *
- * @author supor
+ * @author Rafael Nunes
  */
 public class DataHora {
     

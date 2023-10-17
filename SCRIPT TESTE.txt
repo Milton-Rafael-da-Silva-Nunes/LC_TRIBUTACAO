@@ -1,0 +1,71 @@
+SELECT * FROM lc_tributacao.produtos p;
+
+## SELECAO DO BANCO ATUAL
+SELECT
+P.id as ID_PRODUTO,
+p.codigo_barras AS BARRAS,
+P.NOME,
+c.codigotributario as CST,
+cf.codigocfop as CFOP,
+N.CODIGO AS NCM,
+CEST.CEST AS CEST,
+TRIB_PISSAIDA AS PIS,
+TRIB_COFINSSAIDA AS COFINS,
+TRIB_IPISAIDA AS IPI,
+p.origem_produto as ORIGEM,
+p.trib_genero AS GENERO,
+TRIB_PISALIQSAIDA AS ALIQ_PIS,
+TRIB_COFINSALIQSAIDA AS ALIQ_COFINS,
+TRIB_IPIALIQSAIDA AS ALIQ_IPI,
+TRIB_ICMSALIQSAIDA AS ICMS_ALIQ,
+trib_icmsaliqredbasecalcsaida AS ICMS_RED_BASE_CALC
+FROM lc_sistemas.PRODUTO P
+INNER JOIN lc_sistemas.CST C ON P.ID_CST = C.ID
+INNER JOIN lc_sistemas.CFOP CF ON P.ID_CFOP = CF.ID
+INNER JOIN lc_sistemas.NCM N ON P.ID_NCM = N.ID
+INNER JOIN lc_sistemas.CEST CEST ON CEST.ID = P.ID_CEST
+ORDER BY p.id;
+
+
+## UPDATE DE TESTE
+update lc_sistemas.produto set
+id_cst = 14,
+id_cfop = 289,
+id_ncm = 1,
+id_cest = 1,
+trib_pissaida = '',
+trib_cofinssaida = '',
+trib_ipisaida = '',
+trib_genero = '',
+trib_pisaliqsaida = 0.0,
+trib_cofinsaliqsaida = 0.0,
+trib_icmsaliqsaida = 0.0,
+trib_icmsaliqredbasecalcsaida = 0.0;
+
+
+## UPDATE APLICACAO
+UPDATE lc_sistemas.produto p
+
+INNER JOIN lc_tributacao.produtos pp on pp.id_produto        = p.id
+INNER JOIN lc_sistemas.cst       cst on cst.codigotributario = pp.cst
+INNER JOIN lc_sistemas.cfop     cfop on cfop.codigocfop      = pp.cfop
+INNER JOIN lc_sistemas.ncm       ncm on ncm.codigo           = pp.ncm
+INNER JOIN lc_sistemas.cest     cest on cest.cest            = pp.cest
+
+set
+
+p.id_cst = cst.id,
+p.id_cfop = cfop.id,
+p.id_ncm = ncm.id,
+p.id_cest = cest.id,
+p.trib_pissaida = pp.pis,
+p.trib_cofinssaida = pp.cofins,
+p.trib_ipisaida = pp.ipi,
+p.origem_produto = pp.origem,
+p.trib_genero = pp.genero,
+p.trib_pisaliqsaida = pp.pis_aliq,
+p.trib_cofinsaliqsaida = pp.cofins_aliq,
+p.trib_ipialiqsaida = pp.ipi_aliq,
+p.trib_icmsaliqsaida = pp.icms_aliq,
+p.trib_icmsaliqredbasecalcsaida = pp.icms_aliq_red_bc;
+

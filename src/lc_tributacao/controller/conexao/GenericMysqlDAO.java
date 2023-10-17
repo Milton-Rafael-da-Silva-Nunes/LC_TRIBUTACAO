@@ -14,15 +14,15 @@ import lc_tributacao.controller.exceptions.Exceptions;
 
 /**
  *
- * @author MIGRAÇÃO
+ * @author Rafael Nunes
  */
 public class GenericMysqlDAO {
 
     final private String driver = "com.mysql.jdbc.Driver";
     private Connection conn = null;
     public static String database;
-    private String usuario;
-    private String senha;
+    public static String usuario;
+    public static String senha;
     private String porta;
 
     public GenericMysqlDAO() {

@@ -11,7 +11,7 @@ import lc_tributacao.view.TelaInicial;
 
 /**
  *
- * @author MIGRAÇÃO
+ * @author Rafael Nunes
  */
 public class ProdutosDAO {
 
@@ -23,7 +23,7 @@ public class ProdutosDAO {
     }
 
     public void executarUpdates() throws Exception {
-        TelaInicial.getLogError("**** TRIBUTACAO ****");
+        TelaInicial.getLog("**** TRIBUTACAO ****");
         inserirNovosNCM();
         inserirNovosCEST();
         updateNCM();
@@ -60,7 +60,7 @@ public class ProdutosDAO {
 
         } catch (SQLException e) {
             e.printStackTrace();
-            TelaInicial.getLogError("Erro ao inserir produto: " + e.getMessage());
+            TelaInicial.getLog("Erro ao inserir produto: " + e.getMessage());
         }
     }
 
@@ -71,10 +71,10 @@ public class ProdutosDAO {
                 + "AND ncm NOT IN(SELECT codigo FROM lc_sistemas.ncm)GROUP BY ncm;")) {
 
             int resultado = pstm.executeUpdate();
-            TelaInicial.getLogError("NCMs novos: " + resultado);
+            TelaInicial.getLog("NCMs novos: " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLogError("Erro ao inserir novos NCMs -> " + e.getMessage());
+            TelaInicial.getLog("Erro ao inserir novos NCMs -> " + e.getMessage());
         }
     }
 
@@ -85,10 +85,10 @@ public class ProdutosDAO {
                 + "AND cest NOT IN(SELECT cest FROM " + dataBase + ".cest)GROUP BY cest;")) {
 
             int resultado = pstm.executeUpdate();
-            TelaInicial.getLogError("CESTs novos: " + resultado);
+            TelaInicial.getLog("CESTs novos: " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLogError("Erro ao inserir novos CESTs -> " + e.getMessage());
+            TelaInicial.getLog("Erro ao inserir novos CESTs -> " + e.getMessage());
         }
     }
 
@@ -100,10 +100,10 @@ public class ProdutosDAO {
                 + "SET p.id_cst = c.id;")) {
 
             int resultado = pstm.executeUpdate();
-            TelaInicial.getLogError("CSTs Alterados: " + resultado);
+            TelaInicial.getLog("CSTs Alterados: " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLogError("Erro ao executar Update CST -> " + e.getMessage());
+            TelaInicial.getLog("Erro ao executar Update CST -> " + e.getMessage());
         }
         // Executar CFOP ao final do CST (depende dele)
         updateCFOP();
@@ -118,10 +118,10 @@ public class ProdutosDAO {
             pstm.executeUpdate();
 
             int resultado = pstm.executeUpdate();
-            TelaInicial.getLogError("CFOPs Alterados: " + resultado);
+            TelaInicial.getLog("CFOPs Alterados: " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLogError("Erro ao executar Update CFOP -> " + e.getMessage());
+            TelaInicial.getLog("Erro ao executar Update CFOP -> " + e.getMessage());
         }
     }
 
@@ -142,10 +142,10 @@ public class ProdutosDAO {
             pstm.executeUpdate();
 
             int resultado = pstm.executeUpdate();
-            TelaInicial.getLogError("PIS/COFINS/ALIQUOTAS Alterados: " + resultado);
+            TelaInicial.getLog("PIS/COFINS/ALIQUOTAS Alterados: " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLogError("Erro ao executar Update PIS/COFINS/ALIQUOTAS -> " + e.getMessage());
+            TelaInicial.getLog("Erro ao executar Update PIS/COFINS/ALIQUOTAS -> " + e.getMessage());
         }
     }
 
@@ -156,10 +156,10 @@ public class ProdutosDAO {
                 + "SET p.id_ncm = n.id;")) {
 
             int resultado = pstm.executeUpdate();
-            TelaInicial.getLogError("NCMs Alterados: " + resultado);
+            TelaInicial.getLog("NCMs Alterados: " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLogError("Erro ao executar Update NCM -> " + e.getMessage());
+            TelaInicial.getLog("Erro ao executar Update NCM -> " + e.getMessage());
         }
     }
 
@@ -170,10 +170,10 @@ public class ProdutosDAO {
                 + "SET p.id_cest = c.id;")) {
 
             int resultado = pstm.executeUpdate();
-            TelaInicial.getLogError("CESTs Alterados: " + resultado);
+            TelaInicial.getLog("CESTs Alterados: " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLogError("Erro ao executar Update CEST -> " + e.getMessage());
+            TelaInicial.getLog("Erro ao executar Update CEST -> " + e.getMessage());
         }
     }
 }

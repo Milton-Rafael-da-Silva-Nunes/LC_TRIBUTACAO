@@ -17,7 +17,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 /**
  *
- * @author supor
+ * @author Rafael Nunes
  */
 public class ProdutosExportService {
 

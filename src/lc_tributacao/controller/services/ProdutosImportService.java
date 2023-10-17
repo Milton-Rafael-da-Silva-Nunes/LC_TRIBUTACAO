@@ -14,7 +14,7 @@ import org.apache.poi.ss.usermodel.*;
 
 /**
  *
- * @author MIGRAÇÃO
+ * @author Rafael Nunes
  */
 public class ProdutosImportService {
 
@@ -38,13 +38,15 @@ public class ProdutosImportService {
                 Produtos produto = parseLinha(row);
                 produtos.add(produto);
             }
-            TelaInicial.getLogError("\nProdutos da planilha: " + contarLinhasExcel(filePath) + "\n");
+
+            TelaInicial.getLog("\nProdutos da planilha: " + contarLinhasExcel(filePath) + "\n");
+
         } catch (FileNotFoundException e) {
-            TelaInicial.getLogError("\nArquivo não encontrado: " + e.getMessage() + "\n");
+            TelaInicial.getLog("Arquivo não encontrado: " + e.getMessage() + "\n");
         } catch (NumberFormatException e) {
-            TelaInicial.getLogError("\nFormato numerico invalido: " + e.getMessage() + "\n");
+            TelaInicial.getLog("Formato numerico invalido: " + e.getMessage() + "\n");
         } catch (IllegalStateException e) {
-            TelaInicial.getLogError("Erro geral: " + e.getMessage());
+            TelaInicial.getLog("Erro geral: " + e.getMessage());
         }
         return validarObjetoProdutos(produtos);
     }
@@ -79,7 +81,7 @@ public class ProdutosImportService {
             produto.setIdProduto(returnIntegerValue(idProdutoCell));
         } else {
             produto.setIdProduto(0);
-            TelaInicial.getLogError("ID_PRODUTO invalido: " + row.getCell(0) + " - " + nomeCell);
+            TelaInicial.getLog("ID_PRODUTO invalido: " + row.getCell(0) + " - " + nomeCell);
         }
 
         if (barrasCell != null) {
@@ -94,7 +96,7 @@ public class ProdutosImportService {
             produto.setNome(nomeCell.getStringCellValue());
         } else {
             produto.setNome("");
-            TelaInicial.getLogError("NOME invalido (id): " + idProdutoCell + " " + nomeCell);
+            TelaInicial.getLog("NOME invalido (id): " + idProdutoCell + " " + nomeCell);
         }
 
         if (cstCell != null) {
@@ -102,7 +104,7 @@ public class ProdutosImportService {
             produto.setCst(cstCell.getStringCellValue());
         } else {
             produto.setCst("");
-            TelaInicial.getLogError("CST invalido (id): " + idProdutoCell + " " + nomeCell);
+            TelaInicial.getLog("CST invalido (id): " + idProdutoCell + " " + nomeCell);
         }
 
         if (cfopCell != null) {
@@ -110,7 +112,7 @@ public class ProdutosImportService {
             produto.setCfop(cfopCell.getStringCellValue());
         } else {
             produto.setCfop("");
-            TelaInicial.getLogError("CFOP invalido (id): " + idProdutoCell + " " + nomeCell);
+            TelaInicial.getLog("CFOP invalido (id): " + idProdutoCell + " " + nomeCell);
         }
 
         if (ncmCell != null) {
@@ -119,7 +121,7 @@ public class ProdutosImportService {
             produto.setNcm(getNcmFormatado(ncm));
         } else {
             produto.setNcm("");
-            TelaInicial.getLogError("NCM invalido (id): " + idProdutoCell + " " + nomeCell);
+            TelaInicial.getLog("NCM invalido (id): " + idProdutoCell + " " + nomeCell);
         }
 
         if (cestCell != null) {
@@ -128,7 +130,7 @@ public class ProdutosImportService {
             produto.setCest(getCestFormatado(cest));
         } else {
             produto.setCest("");
-            TelaInicial.getLogError("CEST invalido (id): " + idProdutoCell + " " + nomeCell);
+            TelaInicial.getLog("CEST invalido (id): " + idProdutoCell + " " + nomeCell);
         }
 
         if (pisCell != null) {
@@ -272,8 +274,8 @@ public class ProdutosImportService {
             if (produto == null || produto.getIdProduto() == null || produto.getIdProduto() == 0 || produto.getNome().isEmpty() || produto.getCst() == null
                     || produto.getCfop() == null || produto.getNcm() == null || produto.getCest() == null || produto.getPis() == null
                     || produto.getCofins() == null || produto.getPisAliq() == null || produto.getCofinsAliq() == null || produto.getIcmsAliq() == null) {
-                TelaInicial.getLogError("******** PRODUTOS INVALIDOS ********");
-                TelaInicial.getLogError("--> " + produto);
+                TelaInicial.getLog("******** PRODUTOS INVALIDOS ********");
+                TelaInicial.getLog("--> " + produto);
             } else {
                 produtosValidados.add(produto);
                 System.out.println("Produtos --> " + produto);
@@ -282,7 +284,7 @@ public class ProdutosImportService {
         return produtosValidados;
     }
 
-    private int contarLinhasExcel(String filePath) {
+    private int contarLinhasExcel(String filePath) throws IOException, FileNotFoundException {
         int totalLinhas = 0;
 
         try {

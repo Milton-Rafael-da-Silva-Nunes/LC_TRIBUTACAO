@@ -2,7 +2,7 @@ package lc_tributacao.controller.exceptions;
 
 /**
  *
- * @author MIGRAÇÃO
+ * @author Rafael Nunes
  */
 public class Exceptions extends RuntimeException {
 

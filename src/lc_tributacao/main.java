@@ -2,7 +2,7 @@ package lc_tributacao;
 
 /**
  *
- * @author MIGRAÇÃO
+ * @author Rafael Nunes
  */
 public class main {
 

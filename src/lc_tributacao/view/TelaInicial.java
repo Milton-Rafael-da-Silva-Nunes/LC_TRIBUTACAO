@@ -13,34 +13,33 @@ import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import lc_tributacao.controller.conexao.GenericMysqlDAO;
 import lc_tributacao.model.dao.ProdutosDAO;
-import lc_tributacao.controller.services.CriarBancoService;
+import lc_tributacao.controller.services.BancoDadosService;
 import lc_tributacao.controller.services.ProdutosExportService;
 import lc_tributacao.controller.services.ProdutosImportService;
 import static lc_tributacao.util.Versao.getVersaoPrograma;
 
 /**
  *
- * @author MIGRAÇÃO
+ * @author Rafael Nunes
  */
 public final class TelaInicial extends javax.swing.JFrame {
-
+    
     String filePath = "";
     Connection conn = new GenericMysqlDAO().getConnection();
-
+    
     public TelaInicial() throws Exception {
-        //criarBancoAuxiliar();
         initComponents();
         imagemLc();
         lblCaminhoArq.setText(" Ex: Documentos\\AJUSTE - TRIBUTARIO.xls");
         lblCaminhoArq.setForeground(Color.GRAY);
     }
-
+    
     private void imagemLc() {
         ImageIcon icon = new ImageIcon("C:/LC sistemas - Softhouse/lib/lc_logoSofthouseBrasao.gif");
         icon.setImage(icon.getImage().getScaledInstance(25, 25, 15));
         lblImg.setIcon(icon);
     }
-
+    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -199,8 +198,8 @@ public final class TelaInicial extends javax.swing.JFrame {
     private void btnImportarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImportarActionPerformed
         if (chamarTelaImportar()) {
             if (validarArquivoExcel()) {
-                criarBancoAuxiliar();
-                lerExcel();
+                criarBancoDados();
+                lerTabelaExcel();
                 JOptionPane.showMessageDialog(null, "Produtos atualizados com sucesso!", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
             }
         } else {
@@ -210,31 +209,28 @@ public final class TelaInicial extends javax.swing.JFrame {
 
     private void btnExportarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportarActionPerformed
         if (chamarTelaExportar()) {
-            if(validarArquivoExcel()) {
-                if(exportarProdutosXls()) {
-                    JOptionPane.showMessageDialog(null, "Tabela exportada com sucesso! \n\n<html><b>Caminho:</b> " + filePath + "</html>", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
+            if (validarArquivoExcel()) {
+                if (exportarProdutosXls()) {
+                    JOptionPane.showMessageDialog(null, "Tabela exportada com sucesso! \n\n<html><b>Caminho:</b> " + filePath + "\\CLASSIFICAO DE TRIBUTOS.xls</html>", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
+                    TelaInicial.getLog("Tabela exportada com sucesso!");
                 } else {
-                    getLogError("Atenção... \nNenhum produto encontrado na base!");
+                    getLog("Atenção... \nNenhum produto encontrado na base!");
                 }
             }
         } else {
             JOptionPane.showMessageDialog(null, "<html><b>Atenção</b>...<br>Selecione um caminho para Exportar!</html>", "Atenção", JOptionPane.WARNING_MESSAGE);
         }
     }//GEN-LAST:event_btnExportarActionPerformed
-
+    
     private Boolean chamarTelaImportar() {
-        JFileChooser fileChooser  = new JFileChooser();
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Arquivos Excel", "xls"/*, "xlsx"*/));
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Arquivos Excel", "xls"));
         int returnValue = fileChooser.showOpenDialog(null);
-
+        
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             filePath = selectedFile.getAbsolutePath();
-            lblCaminhoArq.setText(" " + filePath
-                    .replace("C:\\", "")
-                    .replace("D:\\", "")
-                    .replace("E:\\", "")
-                    .replace("Users\\", ""));
+            lblCaminhoArq.setText(" " + filePath);
             lblCaminhoArq.setForeground(Color.GRAY);
             System.out.println("Arquivo Excel selecionado: " + filePath);
             return true;
@@ -243,20 +239,16 @@ public final class TelaInicial extends javax.swing.JFrame {
         }
         return false;
     }
-
+    
     private Boolean chamarTelaExportar() {
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); // Permite selecionar apenas pastas
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int returnValue = fileChooser.showOpenDialog(null);
-
+        
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             filePath = selectedFile.getAbsolutePath();
-            lblCaminhoArq.setText(" " + filePath
-                    .replace("C:\\", "")
-                    .replace("D:\\", "")
-                    .replace("E:\\", "")
-                    .replace("Users\\", ""));
+            lblCaminhoArq.setText(" " + filePath + "\\CLASSIFICAO DE TRIBUTOS.xls");
             lblCaminhoArq.setForeground(Color.GRAY);
             System.out.println("Pasta de exportação selecionada: " + filePath);
             return true;
@@ -265,26 +257,48 @@ public final class TelaInicial extends javax.swing.JFrame {
         }
         return false;
     }
-
-    private void lerExcel() {
-        ProdutosDAO pDao;
+    
+    private void lerTabelaExcel() {
         try {
-            pDao = new ProdutosDAO(conn);
+            ProdutosDAO pDao = new ProdutosDAO(conn);
             pDao.InserirProdutosNoBanco(new ProdutosImportService().getProdutosExcel(filePath));
             pDao.executarUpdates();
         } catch (Exception ex) {
-            TelaInicial.getLogError(ex.getMessage());
+            TelaInicial.getLog(ex.getMessage());
         }
     }
-
+    
+    private void criarBancoDados() {
+        try {
+            BancoDadosService bd = new BancoDadosService(conn);
+            bd.criarBackupTabelaProduto(); // Backup de segurança
+            bd.criarBancoLcTributacao();
+            bd.criarTabelaProduto();
+        } catch (SQLException e) {
+            TelaInicial.getLog("Erro ao criar banco de dados! \n\n" + e.getMessage());
+        } catch (IOException ex) {
+            TelaInicial.getLog("Erro ao criar backup da tabela de produto! \n\n" + ex.getMessage());
+        }
+    }
+    
+    private Boolean exportarProdutosXls() {
+        try {
+            ProdutosExportService prodExportService = new ProdutosExportService(conn);
+            return prodExportService.gerarProdutosXls(filePath);
+        } catch (SQLException | IOException e) {
+            getLog(e.getMessage());
+        }
+        return false;
+    }
+    
     private Boolean validarArquivoExcel() {
         return !filePath.isEmpty();
     }
-
-    public static void getLogError(String texto) {
+    
+    public static void getLog(String texto) {
         txtLogError.setText(txtLogError.getText() + texto + "\n");
     }
-
+    
     public static void main(String args[]) {
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -296,7 +310,7 @@ public final class TelaInicial extends javax.swing.JFrame {
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(TelaInicial.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-
+        
         java.awt.EventQueue.invokeLater(() -> {
             try {
                 new TelaInicial().setVisible(true);
@@ -304,26 +318,6 @@ public final class TelaInicial extends javax.swing.JFrame {
                 Logger.getLogger(TelaInicial.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
-    }
-
-    public void criarBancoAuxiliar() {
-        try {
-            CriarBancoService bd = new CriarBancoService(conn);
-            bd.criarBanco();
-            bd.criarTabelaProdutos();
-        } catch (SQLException e) {
-            TelaInicial.getLogError("Erro ao criar banco de dados! \n\n" + e.getMessage());
-        }
-    }
-
-    public boolean exportarProdutosXls() {
-        try {
-            ProdutosExportService prodExportServic = new ProdutosExportService(conn);
-            return prodExportServic.gerarProdutosXls(filePath);
-        } catch (SQLException | IOException e) {
-            getLogError(e.getMessage());
-        }
-        return false;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

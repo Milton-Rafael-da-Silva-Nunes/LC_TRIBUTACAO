@@ -2,7 +2,7 @@ package lc_tributacao.model.entities;
 
 /**
  *
- * @author MIGRAÇÃO
+ * @author Rafael Nunes
  */
 public class Produtos {
 

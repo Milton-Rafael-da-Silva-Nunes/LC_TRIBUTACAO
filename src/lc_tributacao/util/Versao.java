@@ -2,7 +2,7 @@ package lc_tributacao.util;
 
 /**
  *
- * @author supor
+ * @author Rafael Nunes
  */
 public class Versao {
     
