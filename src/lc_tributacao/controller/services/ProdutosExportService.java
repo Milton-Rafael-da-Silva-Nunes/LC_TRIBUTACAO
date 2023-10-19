@@ -8,7 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import lc_tributacao.controller.conexao.GenericMysqlDAO;
 import lc_tributacao.model.entities.Produtos;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
@@ -40,6 +39,7 @@ public class ProdutosExportService {
 
     private void criarProdutosXls(List<Produtos> listaProduto, String filePath) throws IOException {
         try (Workbook workbook = new HSSFWorkbook(); FileOutputStream fileOut = new FileOutputStream(filePath)) {
+
             Sheet sheet = workbook.createSheet("Produtos");
             int rowIdx = 0;
 
@@ -85,41 +85,37 @@ public class ProdutosExportService {
             workbook.write(fileOut);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Erro ao exportar produtos.xls: " + e.getMessage());
         }
     }
 
     private List<Produtos> listaProdutos() throws SQLException {
-        PreparedStatement pstm = null;
-        ResultSet rs = null;
-
-        try {
-            pstm = conn.prepareStatement("SELECT\n"
-                    + "P.id as ID_PRODUTO,\n"
-                    + "P.codigo_barras as BARRAS,\n"
-                    + "P.NOME,\n"
-                    + "c.codigotributario as CST,\n"
-                    + "cf.codigocfop as CFOP,\n"
-                    + "N.CODIGO AS NCM,\n"
-                    + "CEST.CEST AS CEST,\n"
-                    + "TRIB_PISSAIDA AS PIS,\n"
-                    + "TRIB_COFINSSAIDA AS COFINS,\n"
-                    + "TRIB_IPISAIDA AS IPI,\n"
-                    + "p.origem_produto as ORIGEM,\n"
-                    + "p.trib_genero AS GENERO,\n"
-                    + "TRIB_PISALIQSAIDA AS ALIQ_PIS,\n"
-                    + "TRIB_COFINSALIQSAIDA AS ALIQ_COFINS,\n"
-                    + "TRIB_IPIALIQSAIDA AS ALIQ_IPI,\n"
-                    + "TRIB_ICMSALIQSAIDA AS ICMS_ALIQ,\n"
-                    + "trib_icmsaliqredbasecalcsaida AS ICMS_RED_BASE_CALC\n"
-                    + "FROM PRODUTO P\n"
-                    + "INNER JOIN CST C ON P.ID_CST = C.ID\n"
-                    + "INNER JOIN CFOP CF ON P.ID_CFOP = CF.ID\n"
-                    + "INNER JOIN NCM N ON P.ID_NCM = N.ID\n"
-                    + "INNER JOIN CEST CEST ON CEST.ID = P.ID_CEST\n"
-                    + "ORDER BY p.id;");
-
-            rs = pstm.executeQuery();
+        try (PreparedStatement pstm = conn.prepareStatement("SELECT\n"
+                + "P.id as ID_PRODUTO,\n"
+                + "P.codigo_barras as BARRAS,\n"
+                + "P.NOME,\n"
+                + "c.codigotributario as CST,\n"
+                + "cf.codigocfop as CFOP,\n"
+                + "N.CODIGO AS NCM,\n"
+                + "CEST.CEST AS CEST,\n"
+                + "TRIB_PISSAIDA AS PIS,\n"
+                + "TRIB_COFINSSAIDA AS COFINS,\n"
+                + "TRIB_IPISAIDA AS IPI,\n"
+                + "p.origem_produto as ORIGEM,\n"
+                + "p.trib_genero AS GENERO,\n"
+                + "TRIB_PISALIQSAIDA AS ALIQ_PIS,\n"
+                + "TRIB_COFINSALIQSAIDA AS ALIQ_COFINS,\n"
+                + "TRIB_IPIALIQSAIDA AS ALIQ_IPI,\n"
+                + "TRIB_ICMSALIQSAIDA AS ICMS_ALIQ,\n"
+                + "trib_icmsaliqredbasecalcsaida AS ICMS_RED_BASE_CALC\n"
+                + "FROM PRODUTO P\n"
+                + "INNER JOIN CST C ON P.ID_CST = C.ID\n"
+                + "INNER JOIN CFOP CF ON P.ID_CFOP = CF.ID\n"
+                + "INNER JOIN NCM N ON P.ID_NCM = N.ID\n"
+                + "INNER JOIN CEST CEST ON CEST.ID = P.ID_CEST\n"
+                + "ORDER BY p.id;");
+                
+                ResultSet rs = pstm.executeQuery()) {
 
             while (rs.next()) {
                 Produtos prod = new Produtos();
@@ -143,11 +139,9 @@ public class ProdutosExportService {
                 listaProduto.add(prod);
                 System.out.println("Produtos do BD --> " + prod);
             }
+            
         } catch (SQLException e) {
             System.out.println("Erro ao gerar lista de produtos: " + e.getMessage());
-        } finally {
-            GenericMysqlDAO.closeStatement(pstm);
-            GenericMysqlDAO.closeResultSet(rs);
         }
         return listaProduto;
     }

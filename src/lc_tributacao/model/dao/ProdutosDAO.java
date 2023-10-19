@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
-import static lc_tributacao.controller.conexao.GenericMysqlDAO.database;
+import static lc_tributacao.controller.conexao.GenericMysqlDAO.dataBase;
 import lc_tributacao.model.entities.Produtos;
 import lc_tributacao.util.DataHora;
 import lc_tributacao.view.TelaInicial;
@@ -15,15 +15,14 @@ import lc_tributacao.view.TelaInicial;
  */
 public class ProdutosDAO {
 
-    final String dataBase = database; // Nome do BANCO DE DADOS do rede.txt
     private Connection conn = null;
 
     public ProdutosDAO(Connection conn) throws Exception {
         this.conn = conn;
     }
 
-    public void executarUpdates() throws Exception {
-        TelaInicial.getLog("**** TRIBUTACAO ****");
+    public void executarAcoesBanco() throws Exception {
+        TelaInicial.getLog("\n**** RESULTADO ****");
         inserirNovosNCM();
         inserirNovosCEST();
         updateNCM();

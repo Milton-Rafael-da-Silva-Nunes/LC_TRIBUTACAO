@@ -20,55 +20,48 @@ public class BancoDadosService extends GenericMysqlDAO {
     }
 
     public void criarBancoLcTributacao() throws SQLException {
-        PreparedStatement pstm = null;
-        try {
-            pstm = conn.prepareStatement("CREATE DATABASE IF NOT EXISTS lc_tributacao;");
+        try (PreparedStatement pstm = conn.prepareStatement("CREATE DATABASE IF NOT EXISTS lc_tributacao;")) {
             pstm.executeUpdate();
         } catch (SQLException e) {
             TelaInicial.getLog("Erro ao criar banco de dados (banco: lc_tributação): " + e.getMessage());
-        } finally {
-            GenericMysqlDAO.closeStatement(pstm);
         }
     }
 
     public void criarTabelaProduto() throws SQLException {
-        PreparedStatement pstm = null;
         deletarTabelaProdutos();
-        try {
-            pstm = conn.prepareStatement("CREATE TABLE lc_tributacao.`produtos` (\n"
-                    + "  `id_produto` INTEGER(11),\n"
-                    + "  `barras` VARCHAR(30),\n"
-                    + "  `nome` VARCHAR(180),\n"
-                    + "  `cst` VARCHAR(5),\n"
-                    + "  `cfop` VARCHAR(6),\n"
-                    + "  `ncm` VARCHAR(12),\n"
-                    + "  `cest` VARCHAR(10),\n"
-                    + "  `pis` VARCHAR(3),\n"
-                    + "  `cofins` VARCHAR(3),\n"
-                    + "  `ipi` VARCHAR(3),\n"
-                    + "  `origem` VARCHAR(5),\n"
-                    + "  `genero` VARCHAR(5),\n"
-                    + "  `pis_aliq` DOUBLE(12,3),\n"
-                    + "  `cofins_aliq` DOUBLE(12,3),\n"
-                    + "  `ipi_aliq` DOUBLE(12,3),\n"
-                    + "  `icms_aliq` DOUBLE(12,3),\n"
-                    + "  `icms_aliq_red_bc` DOUBLE(12,3),\n"
-                    + "  `data_hora` DATETIME,\n"
-                    + "   PRIMARY KEY (`id_produto`)"
-                    + ")\n"
-                    + "ENGINE = InnoDB;");
+        
+        try (PreparedStatement pstm = conn.prepareStatement("CREATE TABLE lc_tributacao.`produtos` (\n"
+                + "  `id_produto` INTEGER(11),\n"
+                + "  `barras` VARCHAR(30),\n"
+                + "  `nome` VARCHAR(180),\n"
+                + "  `cst` VARCHAR(5),\n"
+                + "  `cfop` VARCHAR(6),\n"
+                + "  `ncm` VARCHAR(12),\n"
+                + "  `cest` VARCHAR(10),\n"
+                + "  `pis` VARCHAR(3),\n"
+                + "  `cofins` VARCHAR(3),\n"
+                + "  `ipi` VARCHAR(3),\n"
+                + "  `origem` VARCHAR(5),\n"
+                + "  `genero` VARCHAR(5),\n"
+                + "  `pis_aliq` DOUBLE(12,3),\n"
+                + "  `cofins_aliq` DOUBLE(12,3),\n"
+                + "  `ipi_aliq` DOUBLE(12,3),\n"
+                + "  `icms_aliq` DOUBLE(12,3),\n"
+                + "  `icms_aliq_red_bc` DOUBLE(12,3),\n"
+                + "  `data_hora` DATETIME,\n"
+                + "   PRIMARY KEY (`id_produto`)"
+                + ")\n"
+                + "ENGINE = InnoDB;")) {
 
             pstm.executeUpdate();
 
         } catch (SQLException e) {
             TelaInicial.getLog("Erro ao criar tabela 'produtos' (banco: lc_tributação): " + e.getMessage());
-        } finally {
-            GenericMysqlDAO.closeStatement(pstm);
-        }
+        } 
     }
 
     public void criarBackupTabelaProduto() throws IOException {
-        String comando = String.format("mysqldump --host=localhost --user=" + usuario + " --password=" + senha + " " + database + " produto > C:\\Users\\Public\\Documents\\produto.sql");
+        String comando = String.format("mysqldump --host=localhost --user=" + usuario + " --password=" + senha + " " + dataBase + " produto > produto.sql");
 
         try {
             ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", comando);
@@ -77,7 +70,7 @@ public class BancoDadosService extends GenericMysqlDAO {
 
             int exitCode = process.waitFor();
             if (exitCode == 0) {
-                TelaInicial.getLog("Caminho backup: C:/Users/Public/Documents/produto.sql");
+                TelaInicial.getLog("\n**** BACKUP ****\nCaminho: C:\\LC sistemas - Softhouse\\produto.sql");
                 System.out.println("Backup criado com sucesso.");
             } else {
                 TelaInicial.getLog("**** Erro ao criar o backup ****");
@@ -89,14 +82,10 @@ public class BancoDadosService extends GenericMysqlDAO {
     }
 
     private void deletarTabelaProdutos() throws SQLException {
-        PreparedStatement pstm = null;
-        try {
-            pstm = conn.prepareStatement("DROP TABLE IF EXISTS lc_tributacao.`produtos`;");
+        try (PreparedStatement pstm = conn.prepareStatement("DROP TABLE IF EXISTS lc_tributacao.`produtos`;")){
             pstm.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Erro ao deletar tabela 'produtos' (banco: lc_tributação): " + e.getMessage());
-        } finally {
-            GenericMysqlDAO.closeStatement(pstm);
-        }
+        } 
     }
 }

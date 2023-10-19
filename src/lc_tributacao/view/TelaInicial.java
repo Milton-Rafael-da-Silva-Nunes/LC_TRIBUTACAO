@@ -12,6 +12,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import lc_tributacao.controller.conexao.GenericMysqlDAO;
+import static lc_tributacao.controller.conexao.GenericMysqlDAO.dataBase;
 import lc_tributacao.model.dao.ProdutosDAO;
 import lc_tributacao.controller.services.BancoDadosService;
 import lc_tributacao.controller.services.ProdutosExportService;
@@ -23,23 +24,23 @@ import static lc_tributacao.util.Versao.getVersaoPrograma;
  * @author Rafael Nunes
  */
 public final class TelaInicial extends javax.swing.JFrame {
-    
+
     String filePath = "";
     Connection conn = new GenericMysqlDAO().getConnection();
-    
+
     public TelaInicial() throws Exception {
         initComponents();
         imagemLc();
         lblCaminhoArq.setText(" Ex: Documentos\\AJUSTE - TRIBUTARIO.xls");
         lblCaminhoArq.setForeground(Color.GRAY);
     }
-    
+
     private void imagemLc() {
         ImageIcon icon = new ImageIcon("C:/LC sistemas - Softhouse/lib/lc_logoSofthouseBrasao.gif");
         icon.setImage(icon.getImage().getScaledInstance(25, 25, 15));
         lblImg.setIcon(icon);
     }
-    
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -59,7 +60,7 @@ public final class TelaInicial extends javax.swing.JFrame {
         btnExportar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Lc Tributos <<V 1.0>>");
+        setTitle(getVersaoPrograma());
         setResizable(false);
 
         jPanel1.setBackground(new java.awt.Color(102, 102, 102));
@@ -212,21 +213,21 @@ public final class TelaInicial extends javax.swing.JFrame {
             if (validarArquivoExcel()) {
                 if (exportarProdutosXls()) {
                     JOptionPane.showMessageDialog(null, "Tabela exportada com sucesso! \n\n<html><b>Caminho:</b> " + filePath + "\\CLASSIFICAO DE TRIBUTOS.xls</html>", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
-                    TelaInicial.getLog("Tabela exportada com sucesso!");
+                    getLog("Tabela exportada com sucesso!");
                 } else {
-                    getLog("Atenção... \nNenhum produto encontrado na base!");
+                    getLog("**** ATENÇÃO ****\nNenhum produto encontrado na base '" + dataBase + "'");
                 }
             }
         } else {
             JOptionPane.showMessageDialog(null, "<html><b>Atenção</b>...<br>Selecione um caminho para Exportar!</html>", "Atenção", JOptionPane.WARNING_MESSAGE);
         }
     }//GEN-LAST:event_btnExportarActionPerformed
-    
+
     private Boolean chamarTelaImportar() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Arquivos Excel", "xls"));
         int returnValue = fileChooser.showOpenDialog(null);
-        
+
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             filePath = selectedFile.getAbsolutePath();
@@ -239,12 +240,12 @@ public final class TelaInicial extends javax.swing.JFrame {
         }
         return false;
     }
-    
+
     private Boolean chamarTelaExportar() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int returnValue = fileChooser.showOpenDialog(null);
-        
+
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             filePath = selectedFile.getAbsolutePath();
@@ -257,17 +258,17 @@ public final class TelaInicial extends javax.swing.JFrame {
         }
         return false;
     }
-    
+
     private void lerTabelaExcel() {
         try {
             ProdutosDAO pDao = new ProdutosDAO(conn);
             pDao.InserirProdutosNoBanco(new ProdutosImportService().getProdutosExcel(filePath));
-            pDao.executarUpdates();
+            pDao.executarAcoesBanco();
         } catch (Exception ex) {
-            TelaInicial.getLog(ex.getMessage());
+            getLog(ex.getMessage());
         }
     }
-    
+
     private void criarBancoDados() {
         try {
             BancoDadosService bd = new BancoDadosService(conn);
@@ -275,12 +276,12 @@ public final class TelaInicial extends javax.swing.JFrame {
             bd.criarBancoLcTributacao();
             bd.criarTabelaProduto();
         } catch (SQLException e) {
-            TelaInicial.getLog("Erro ao criar banco de dados! \n\n" + e.getMessage());
+            getLog("\nErro ao criar banco de dados! \n\n" + e.getMessage());
         } catch (IOException ex) {
-            TelaInicial.getLog("Erro ao criar backup da tabela de produto! \n\n" + ex.getMessage());
+            getLog("\nErro ao criar backup da tabela de produto! \n\n" + ex.getMessage());
         }
     }
-    
+
     private Boolean exportarProdutosXls() {
         try {
             ProdutosExportService prodExportService = new ProdutosExportService(conn);
@@ -290,15 +291,15 @@ public final class TelaInicial extends javax.swing.JFrame {
         }
         return false;
     }
-    
+
     private Boolean validarArquivoExcel() {
         return !filePath.isEmpty();
     }
-    
+
     public static void getLog(String texto) {
         txtLogError.setText(txtLogError.getText() + texto + "\n");
     }
-    
+
     public static void main(String args[]) {
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -310,7 +311,7 @@ public final class TelaInicial extends javax.swing.JFrame {
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(TelaInicial.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        
+
         java.awt.EventQueue.invokeLater(() -> {
             try {
                 new TelaInicial().setVisible(true);

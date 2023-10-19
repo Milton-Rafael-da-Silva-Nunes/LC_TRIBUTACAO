@@ -3,9 +3,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/D:/PROGRAMAÇÃO/PROJETOS-LC/LC_TRIBUTACAO/src/lc_tributacao/model/dao/ProdutosDAO.java</file>
+            <file>file:/D:/PROGRAMAÇÃO/PROJETOS-LC/LC_TRIBUTACAO/src/lc_tributacao/controller/services/ProdutosImportService.java</file>
             <file>file:/D:/PROGRAMAÇÃO/PROJETOS-LC/LC_TRIBUTACAO/src/lc_tributacao/view/TelaInicial.java</file>
-            <file>file:/D:/PROGRAMAÇÃO/PROJETOS-LC/LC_TRIBUTACAO/src/lc_tributacao/controller/services/CriarBancoService.java</file>
-            <file>file:/D:/PROGRAMAÇÃO/PROJETOS-LC/LC_TRIBUTACAO/src/lc_tributacao/controller/conexao/GenericMysqlDAO.java</file>
+            <file>file:/D:/PROGRAMAÇÃO/PROJETOS-LC/LC_TRIBUTACAO/src/lc_tributacao/controller/services/BancoDadosService.java</file>
         </group>
     </open-files>
 </project-private>

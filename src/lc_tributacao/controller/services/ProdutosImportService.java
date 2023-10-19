@@ -25,8 +25,7 @@ public class ProdutosImportService {
     private List<Produtos> listaProdutos(String filePath) throws IOException {
         List<Produtos> produtos = new ArrayList<>();
 
-        try {
-            HSSFWorkbook workbook = lerArquivo(filePath);
+        try (HSSFWorkbook workbook = lerArquivo(filePath)) {
             Sheet sheet = workbook.getSheetAt(0); // Primeira planilha
 
             Iterator<Row> rowIterator = sheet.iterator();
@@ -39,7 +38,7 @@ public class ProdutosImportService {
                 produtos.add(produto);
             }
 
-            TelaInicial.getLog("\nProdutos da planilha: " + contarLinhasExcel(filePath) + "\n");
+            TelaInicial.getLog("\n**** LOG ****\nProdutos na planilha: " + contarLinhasExcel(filePath));
 
         } catch (FileNotFoundException e) {
             TelaInicial.getLog("Arquivo não encontrado: " + e.getMessage() + "\n");
@@ -48,7 +47,8 @@ public class ProdutosImportService {
         } catch (IllegalStateException e) {
             TelaInicial.getLog("Erro geral: " + e.getMessage());
         }
-        return validarObjetoProdutos(produtos);
+
+        return validarObjetoProdutos(produtos); // Só retorna OBJETO validos
     }
 
     private HSSFWorkbook lerArquivo(String filePath) throws IOException {
@@ -81,7 +81,6 @@ public class ProdutosImportService {
             produto.setIdProduto(returnIntegerValue(idProdutoCell));
         } else {
             produto.setIdProduto(0);
-            TelaInicial.getLog("ID_PRODUTO invalido: " + row.getCell(0) + " - " + nomeCell);
         }
 
         if (barrasCell != null) {
@@ -96,7 +95,6 @@ public class ProdutosImportService {
             produto.setNome(nomeCell.getStringCellValue());
         } else {
             produto.setNome("");
-            TelaInicial.getLog("NOME invalido (id): " + idProdutoCell + " " + nomeCell);
         }
 
         if (cstCell != null) {
@@ -104,7 +102,6 @@ public class ProdutosImportService {
             produto.setCst(cstCell.getStringCellValue());
         } else {
             produto.setCst("");
-            TelaInicial.getLog("CST invalido (id): " + idProdutoCell + " " + nomeCell);
         }
 
         if (cfopCell != null) {
@@ -112,7 +109,6 @@ public class ProdutosImportService {
             produto.setCfop(cfopCell.getStringCellValue());
         } else {
             produto.setCfop("");
-            TelaInicial.getLog("CFOP invalido (id): " + idProdutoCell + " " + nomeCell);
         }
 
         if (ncmCell != null) {
@@ -121,7 +117,6 @@ public class ProdutosImportService {
             produto.setNcm(getNcmFormatado(ncm));
         } else {
             produto.setNcm("");
-            TelaInicial.getLog("NCM invalido (id): " + idProdutoCell + " " + nomeCell);
         }
 
         if (cestCell != null) {
@@ -130,7 +125,6 @@ public class ProdutosImportService {
             produto.setCest(getCestFormatado(cest));
         } else {
             produto.setCest("");
-            TelaInicial.getLog("CEST invalido (id): " + idProdutoCell + " " + nomeCell);
         }
 
         if (pisCell != null) {
@@ -269,26 +263,29 @@ public class ProdutosImportService {
 
     private List<Produtos> validarObjetoProdutos(List<Produtos> listaProdutos) {
         List<Produtos> produtosValidados = new ArrayList<>();
+        boolean produtosInvalidosEncontrados = false;
 
         for (Produtos produto : listaProdutos) {
-            if (produto == null || produto.getIdProduto() == null || produto.getIdProduto() == 0 || produto.getNome().isEmpty() || produto.getCst() == null
-                    || produto.getCfop() == null || produto.getNcm() == null || produto.getCest() == null || produto.getPis() == null
-                    || produto.getCofins() == null || produto.getPisAliq() == null || produto.getCofinsAliq() == null || produto.getIcmsAliq() == null) {
-                TelaInicial.getLog("******** PRODUTOS INVALIDOS ********");
+
+            if (produto == null || produto.getIdProduto() == 0) {
+                if (!produtosInvalidosEncontrados) {
+                    TelaInicial.getLog("\n******** PRODUTOS INVALIDOS ********");
+                    produtosInvalidosEncontrados = true;
+                }
                 TelaInicial.getLog("--> " + produto);
             } else {
                 produtosValidados.add(produto);
                 System.out.println("Produtos --> " + produto);
             }
         }
+
         return produtosValidados;
     }
 
     private int contarLinhasExcel(String filePath) throws IOException, FileNotFoundException {
         int totalLinhas = 0;
 
-        try {
-            HSSFWorkbook workbook = lerArquivo(filePath);
+        try (HSSFWorkbook workbook = lerArquivo(filePath)) {
             Sheet sheet = workbook.getSheetAt(0);
 
             Iterator<Row> rowIterator = sheet.iterator();
@@ -299,14 +296,14 @@ public class ProdutosImportService {
                 }
 
                 Produtos produto = parseLinha(row);
-                if (produto != null && produto.getIdProduto() != null && !"0".equals(produto.getIdProduto()) && !produto.getNome().isEmpty()) {
+                if (produto != null || produto.getIdProduto() != 0) {
                     totalLinhas++;
                 }
             }
         } catch (FileNotFoundException e) {
-            System.out.println("Metodo contador de linhas --> " + e.getMessage());
+            System.out.println("Metodo contador de linhas (ARQUIVO NAO LOCALIZADO) --> " + e.getMessage());
         } catch (IOException e) {
-            System.out.println("Metodo contador de linhas --> " + e.getMessage());
+            System.out.println("Metodo contador de linhas (ERRO INESPERADO) --> " + e.getMessage());
         }
 
         return totalLinhas;

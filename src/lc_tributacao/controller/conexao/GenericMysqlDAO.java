@@ -7,9 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import lc_tributacao.controller.exceptions.Exceptions;
 
 /**
@@ -20,7 +18,7 @@ public class GenericMysqlDAO {
 
     final private String driver = "com.mysql.jdbc.Driver";
     private Connection conn = null;
-    public static String database;
+    public static String dataBase;
     public static String usuario;
     public static String senha;
     private String porta;
@@ -47,7 +45,7 @@ public class GenericMysqlDAO {
                     String[] split = linha.split(":");
 
                     if (split[0].equalsIgnoreCase("DB")) {
-                        database = (linha.split(":")[1]);
+                        dataBase = (linha.split(":")[1]);
                     }
                     if (split[0].equalsIgnoreCase("USER")) {
                         usuario = (linha.split(":")[1]);
@@ -76,7 +74,7 @@ public class GenericMysqlDAO {
 
     private void abrirConexao() throws Exception {
         try {
-            String url = "jdbc:mysql://localhost:" + porta + "/" + database + "?useUnicode=true&characterEncoding=UTF-8";
+            String url = "jdbc:mysql://localhost:" + porta + "/" + dataBase + "?useUnicode=true&characterEncoding=UTF-8";
             Class.forName(driver);
             conn = DriverManager.getConnection(url, usuario, senha);
             System.out.println("Conexao Mysql efetuada com sucesso!");
@@ -92,28 +90,6 @@ public class GenericMysqlDAO {
                 System.out.println("Conexao Mysql fechada com sucesso!");
             } catch (SQLException e) {
                 System.out.println("Error! closeConnection " + e.getMessage());
-                throw new Exceptions(e.getMessage());
-            }
-        }
-    }
-
-    public static void closeStatement(Statement pstm) {
-        if (pstm != null) {
-            try {
-                pstm.close();
-            } catch (SQLException e) {
-                System.out.println("Error! closeStatement " + e.getMessage());
-                throw new Exceptions(e.getMessage());
-            }
-        }
-    }
-    
-    public static void closeResultSet(ResultSet rs) {
-        if (rs != null) {
-            try {
-                rs.close();
-            } catch (SQLException e) {
-                System.out.println("Error! closeResultSet " + e.getMessage());
                 throw new Exceptions(e.getMessage());
             }
         }
