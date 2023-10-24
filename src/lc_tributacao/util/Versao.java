@@ -7,6 +7,6 @@ package lc_tributacao.util;
 public class Versao {
     
     public static String getVersaoPrograma() {
-        return "LC Ajuste Tributario << V 1.0 >>";
+        return "LC Ajuste Tributario << V 1.2 >>";
     }
 }

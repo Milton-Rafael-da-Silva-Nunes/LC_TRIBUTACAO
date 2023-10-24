@@ -34,6 +34,7 @@ public class BancoDadosService extends GenericMysqlDAO {
                 + "  `id_produto` INTEGER(11),\n"
                 + "  `barras` VARCHAR(30),\n"
                 + "  `nome` VARCHAR(180),\n"
+                + "  `id_grupotributacao` INTEGER(11),\n"
                 + "  `cst` VARCHAR(5),\n"
                 + "  `cfop` VARCHAR(6),\n"
                 + "  `ncm` VARCHAR(12),\n"
