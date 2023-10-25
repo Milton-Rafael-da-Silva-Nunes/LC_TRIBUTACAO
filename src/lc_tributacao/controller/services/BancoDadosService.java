@@ -34,7 +34,6 @@ public class BancoDadosService extends GenericMysqlDAO {
                 + "  `id_produto` INTEGER(11),\n"
                 + "  `barras` VARCHAR(30),\n"
                 + "  `nome` VARCHAR(180),\n"
-                + "  `id_grupotributacao` INTEGER(11),\n"
                 + "  `cst` VARCHAR(5),\n"
                 + "  `cfop` VARCHAR(6),\n"
                 + "  `ncm` VARCHAR(12),\n"
@@ -70,12 +69,14 @@ public class BancoDadosService extends GenericMysqlDAO {
             Process process = processBuilder.start();
 
             int exitCode = process.waitFor();
+            
             if (exitCode == 0) {
                 TelaInicial.getLog("\n**** BACKUP ****\nCaminho: C:\\LC sistemas - Softhouse\\produto.sql");
                 System.out.println("Backup criado com sucesso.");
             } else {
                 TelaInicial.getLog("**** Erro ao criar o backup ****");
             }
+            
         } catch (IOException | InterruptedException e) {
             TelaInicial.getLog("Erro inesperado! \n\n" + e.getMessage());
             System.out.println(e.getMessage());

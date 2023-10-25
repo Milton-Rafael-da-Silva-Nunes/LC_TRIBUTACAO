@@ -24,6 +24,7 @@ public class ProdutosImportService {
 
     private List<Produtos> listaProdutos(String filePath) throws IOException {
         List<Produtos> produtos = new ArrayList<>();
+        List<Produtos> produtosValidos = new ArrayList<>();
 
         try (HSSFWorkbook workbook = lerArquivo(filePath)) {
             Sheet sheet = workbook.getSheetAt(0); // Primeira planilha
@@ -38,17 +39,20 @@ public class ProdutosImportService {
                 produtos.add(produto);
             }
 
-            TelaInicial.getLog("\n**** LOG ****\nProdutos na planilha: " + contarLinhasExcel(filePath));
+            produtosValidos = validarObjetoProdutos(produtos);
+
+            TelaInicial.getLog("\n**** LOG ****\nProdutos na planilha: " + produtosValidos.size());
 
         } catch (FileNotFoundException e) {
             TelaInicial.getLog("Arquivo não encontrado: " + e.getMessage() + "\n");
         } catch (NumberFormatException e) {
+            e.printStackTrace();
             TelaInicial.getLog("Formato numerico invalido: " + e.getMessage() + "\n");
         } catch (IllegalStateException e) {
             TelaInicial.getLog("Erro geral: " + e.getMessage());
         }
 
-        return validarObjetoProdutos(produtos); // Só retorna OBJETO validos
+        return produtosValidos; // Só retorna OBJETO validos
     }
 
     private HSSFWorkbook lerArquivo(String filePath) throws IOException {
@@ -280,32 +284,5 @@ public class ProdutosImportService {
         }
 
         return produtosValidados;
-    }
-
-    private int contarLinhasExcel(String filePath) throws IOException, FileNotFoundException {
-        int totalLinhas = 0;
-
-        try (HSSFWorkbook workbook = lerArquivo(filePath)) {
-            Sheet sheet = workbook.getSheetAt(0);
-
-            Iterator<Row> rowIterator = sheet.iterator();
-            while (rowIterator.hasNext()) {
-                Row row = rowIterator.next();
-                if (row.getRowNum() == 0) {
-                    continue;
-                }
-
-                Produtos produto = parseLinha(row);
-                if (produto != null || produto.getIdProduto() != 0) {
-                    totalLinhas++;
-                }
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("Metodo contador de linhas (ARQUIVO NAO LOCALIZADO) --> " + e.getMessage());
-        } catch (IOException e) {
-            System.out.println("Metodo contador de linhas (ERRO INESPERADO) --> " + e.getMessage());
-        }
-
-        return totalLinhas;
     }
 }

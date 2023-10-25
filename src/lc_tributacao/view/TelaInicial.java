@@ -274,9 +274,9 @@ public final class TelaInicial extends javax.swing.JFrame {
             }
         }
     }
-
+    
     private List<GrupoTributacao> getListaGruposTributacao(List<Produtos> listaDeProdutos) throws SQLException {
-        return new GrupoTributacaoService(conn, listaDeProdutos).getListaGruposTributacao();
+        return new GrupoTributacaoService(conn).getListaGruposTributacao(listaDeProdutos);
     }
 
     private void criarBancoDados() {

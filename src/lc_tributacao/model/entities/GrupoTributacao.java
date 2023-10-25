@@ -1,12 +1,13 @@
 package lc_tributacao.model.entities;
 
+import java.util.Objects;
 import lc_tributacao.util.DataHora;
 
 /**
  *
  * @author Rafael Nunes
  */
-public class GrupoTributacao {
+public class GrupoTributacao implements Comparable<GrupoTributacao>{
 
     private Integer id;
     private String nome;
@@ -452,6 +453,53 @@ public class GrupoTributacao {
         this.ativo = ativo;
     }
 
+    // Metodos sobrescrito para criar grupos quando (cst,cfop,pis,cofins,origem)forem diferentes.
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 41 * hash + Objects.hashCode(this.idCst);
+        hash = 41 * hash + Objects.hashCode(this.idCfop);
+        hash = 41 * hash + Objects.hashCode(this.origem);
+        hash = 41 * hash + Objects.hashCode(this.pisSaida);
+        hash = 41 * hash + Objects.hashCode(this.cofinsSaida);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        
+        final GrupoTributacao other = (GrupoTributacao) obj;
+        
+        if (!Objects.equals(this.origem, other.origem)) {
+            return false;
+        }
+        if (!Objects.equals(this.pisSaida, other.pisSaida)) {
+            return false;
+        }
+        if (!Objects.equals(this.cofinsSaida, other.cofinsSaida)) {
+            return false;
+        }
+        if (!Objects.equals(this.idCst, other.idCst)) {
+            return false;
+        }
+        
+        return Objects.equals(this.idCfop, other.idCfop);
+    }
+
+    @Override
+    public int compareTo(GrupoTributacao outroGrupo) {
+        return Integer.compare(this.idCst, outroGrupo.idCst);
+    }
+    
     @Override
     public String toString() {
         return id + " " + nome;
