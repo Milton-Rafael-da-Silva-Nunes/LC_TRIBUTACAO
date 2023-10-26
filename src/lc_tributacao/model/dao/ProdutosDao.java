@@ -7,7 +7,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import lc_tributacao.controller.exceptions.Exceptions;
+import java.util.TreeMap;
+import lc_tributacao.controller.conexao.exceptions.Exceptions;
 import lc_tributacao.model.entities.GrupoTributacao;
 import lc_tributacao.model.entities.Produtos;
 import lc_tributacao.util.DataHora;
@@ -136,7 +137,7 @@ public class ProdutosDao {
                 }
 
                 listaGrupoDeTributacao.add(1);
-                System.out.println(grupo);
+                System.out.println("NOVO GRUPO: " + grupo);
             }
 
         } catch (SQLException e) {

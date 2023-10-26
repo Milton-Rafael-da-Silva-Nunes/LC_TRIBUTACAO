@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import lc_tributacao.controller.exceptions.Exceptions;
+import lc_tributacao.controller.conexao.exceptions.Exceptions;
 import lc_tributacao.model.entities.Empresa;
 import lc_tributacao.view.TelaInicial;
 
@@ -39,7 +39,7 @@ public class EmpresaDao {
                 empresa.setId(rs.getInt("id"));
                 empresa.setEstado(rs.getString("estado"));
                 empresa.setIdEstado(rs.getInt("id_estados"));
-                System.out.println("Dados Empresa --> " + empresa);
+                System.out.println("DADOS EMPRESA: " + empresa);
             }
 
             rs.close();

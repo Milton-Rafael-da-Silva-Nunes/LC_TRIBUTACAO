@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import static lc_tributacao.controller.conexao.GenericMysqlDAO.dataBase;
 import static lc_tributacao.controller.conexao.GenericMysqlDAO.senha;
 import static lc_tributacao.controller.conexao.GenericMysqlDAO.usuario;
-import lc_tributacao.controller.exceptions.Exceptions;
+import lc_tributacao.controller.conexao.exceptions.Exceptions;
 import lc_tributacao.view.TelaInicial;
 
 /**

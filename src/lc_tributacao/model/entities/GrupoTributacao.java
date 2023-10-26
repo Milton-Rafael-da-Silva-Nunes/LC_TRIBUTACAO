@@ -479,7 +479,10 @@ public class GrupoTributacao implements Comparable<GrupoTributacao>{
         
         final GrupoTributacao other = (GrupoTributacao) obj;
         
-        if (!Objects.equals(this.origem, other.origem)) {
+        if (!Objects.equals(this.idCst, other.idCst)) {
+            return false;
+        }
+        if (!Objects.equals(this.idCfop, other.idCfop)) {
             return false;
         }
         if (!Objects.equals(this.pisSaida, other.pisSaida)) {
@@ -488,11 +491,7 @@ public class GrupoTributacao implements Comparable<GrupoTributacao>{
         if (!Objects.equals(this.cofinsSaida, other.cofinsSaida)) {
             return false;
         }
-        if (!Objects.equals(this.idCst, other.idCst)) {
-            return false;
-        }
-        
-        return Objects.equals(this.idCfop, other.idCfop);
+        return Objects.equals(this.origem, other.origem);
     }
 
     @Override

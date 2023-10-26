@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import lc_tributacao.controller.exceptions.Exceptions;
+import lc_tributacao.controller.conexao.exceptions.Exceptions;
 
 /**
  *

@@ -29,7 +29,7 @@ import static lc_tributacao.util.Versao.getVersaoPrograma;
  *
  * @author Rafael Nunes
  */
-public final class TelaInicial extends javax.swing.JFrame {
+public class TelaInicial extends javax.swing.JFrame {
 
     String filePath = "";
     Connection conn = new GenericMysqlDAO().getConnection();

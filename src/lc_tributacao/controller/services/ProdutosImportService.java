@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import lc_tributacao.controller.exceptions.Exceptions;
+import lc_tributacao.controller.conexao.exceptions.Exceptions;
 import lc_tributacao.model.entities.Produtos;
 import lc_tributacao.view.TelaInicial;
 import org.apache.poi.ss.usermodel.Row;

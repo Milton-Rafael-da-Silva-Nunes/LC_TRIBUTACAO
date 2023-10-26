@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import lc_tributacao.controller.exceptions.Exceptions;
+import lc_tributacao.controller.conexao.exceptions.Exceptions;
 import lc_tributacao.model.entities.Empresa;
 import lc_tributacao.model.entities.GrupoTributacao;
 import lc_tributacao.model.entities.Produtos;
@@ -24,6 +24,7 @@ public class GrupoTributacaoService {
 
     private TreeMap<String, Integer> mapaCst;
     private TreeMap<String, Integer> mapaCfop;
+    private TreeMap<String, String> mapaGrupoTributacao;
 
     public GrupoTributacaoService(Connection conn) {
         this.conn = conn;
@@ -39,23 +40,31 @@ public class GrupoTributacaoService {
 
         mapaCst = getMapaCst();
         mapaCfop = getMapaCfop();
+        mapaGrupoTributacao = getMapaGrupoTributacao();
 
         for (Produtos produto : listaDeProdutos) {
             GrupoTributacao grupoChave = new GrupoTributacao();
             grupoChave.setIdCst(mapaCst.get(produto.getCst()));
             grupoChave.setIdCfop(mapaCfop.get(produto.getCfop()));
-            grupoChave.setOrigem(produto.getOrigem());
             grupoChave.setPisSaida(produto.getPis());
             grupoChave.setCofinsSaida(produto.getCofins());
+            grupoChave.setOrigem(produto.getOrigem());
 
             // Aqui é usado o Equal e HashCode da classe modelo com base no que foi definido lá.
             if (!grupoMap.containsKey(grupoChave)) {
-                GrupoTributacao novoGrupo = criarNovoGrupoTributacao(produto, empresa);
-                listaGruposTributacao.add(novoGrupo);
-                grupoMap.put(grupoChave, novoGrupo);
+                
+                // Chave criada para verificar se grupo de tributacao ja existe na base.
+                String chave = mapaCst.get(produto.getCst()).toString() + mapaCfop.get(produto.getCfop()).toString() + produto.getPis() + produto.getCofins() + produto.getOrigem();
+                
+                // Mapa para verificar grupo no banco.
+                if (!mapaGrupoTributacao.containsKey(chave)) {
+                    GrupoTributacao novoGrupo = criarNovoGrupoTributacao(produto, empresa);
+                    listaGruposTributacao.add(novoGrupo);
+                    grupoMap.put(grupoChave, novoGrupo);
+                }
             }
         }
-
+        
         return listaGruposTributacao;
     }
 
@@ -85,33 +94,51 @@ public class GrupoTributacaoService {
 
     private TreeMap<String, Integer> getMapaCst() {
         TreeMap<String, Integer> map = new TreeMap();
+
         try (PreparedStatement pstm = conn.prepareStatement("select id, codigotributario from cst");
                 ResultSet rs = pstm.executeQuery()) {
 
             while (rs.next()) {
                 map.put(rs.getString("codigotributario"), rs.getInt("id"));
             }
-
         } catch (SQLException e) {
-            throw new Exceptions("Erro em getMapCst: " + e.getMessage());
+            throw new Exceptions("Erro em getMapaCst: " + e.getMessage());
         }
-
         return map;
     }
 
     private TreeMap<String, Integer> getMapaCfop() {
         TreeMap<String, Integer> map = new TreeMap();
+
         try (PreparedStatement pstm = conn.prepareStatement("select id, codigocfop from cfop");
                 ResultSet rs = pstm.executeQuery()) {
 
             while (rs.next()) {
                 map.put(rs.getString("codigocfop"), rs.getInt("id"));
             }
-
         } catch (SQLException e) {
-            throw new Exceptions("Erro em getMapCfop: " + e.getMessage());
+            throw new Exceptions("Erro em getMapaCfop: " + e.getMessage());
         }
-
         return map;
+    }
+
+    private TreeMap<String, String> getMapaGrupoTributacao() {
+        TreeMap<String, String> mapaGrupo = new TreeMap<>();
+
+        try (PreparedStatement pstm = conn.prepareStatement("SELECT id_cst, id_cfop, pis_saida, cofins_saida, origem FROM grupotributacao WHERE id > 1;");
+                ResultSet rs = pstm.executeQuery()) {
+
+            while (rs.next()) {
+                String chave = rs.getString("id_cst") + rs.getString("id_cfop") + rs.getString("pis_saida") + rs.getString("cofins_saida") + rs.getString("origem");
+
+                if (!mapaGrupo.containsKey(chave)) {
+                    mapaGrupo.put(chave, chave);
+                    System.out.println("CHAVE MAP: " + chave);
+                }
+            }
+        } catch (SQLException e) {
+            throw new Exceptions("Erro em getMapaGrupoTributacao: " + e.getMessage());
+        }
+        return mapaGrupo;
     }
 }
