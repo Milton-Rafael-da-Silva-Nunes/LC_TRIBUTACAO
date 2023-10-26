@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import lc_tributacao.controller.exceptions.Exceptions;
 import lc_tributacao.model.entities.Produtos;
 import lc_tributacao.view.TelaInicial;
 import org.apache.poi.ss.usermodel.Row;
@@ -44,12 +45,12 @@ public class ProdutosImportService {
             TelaInicial.getLog("\n**** LOG ****\nProdutos na planilha: " + produtosValidos.size());
 
         } catch (FileNotFoundException e) {
-            TelaInicial.getLog("Arquivo não encontrado: " + e.getMessage() + "\n");
+            throw new Exceptions("Arquivo não encontrado: " + e.getMessage() + "\n");
         } catch (NumberFormatException e) {
             e.printStackTrace();
-            TelaInicial.getLog("Formato numerico invalido: " + e.getMessage() + "\n");
+            throw new Exceptions("Formato numerico invalido: " + e.getMessage() + "\n");
         } catch (IllegalStateException e) {
-            TelaInicial.getLog("Erro geral: " + e.getMessage());
+            throw new Exceptions("Erro geral: " + e.getMessage());
         }
 
         return produtosValidos; // Só retorna OBJETO validos

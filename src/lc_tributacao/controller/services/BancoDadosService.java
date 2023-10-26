@@ -4,33 +4,29 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import lc_tributacao.controller.conexao.GenericMysqlDAO;
+import static lc_tributacao.controller.conexao.GenericMysqlDAO.dataBase;
+import static lc_tributacao.controller.conexao.GenericMysqlDAO.senha;
+import static lc_tributacao.controller.conexao.GenericMysqlDAO.usuario;
+import lc_tributacao.controller.exceptions.Exceptions;
 import lc_tributacao.view.TelaInicial;
 
 /**
  *
  * @author Rafael Nunes
  */
-public class BancoDadosService extends GenericMysqlDAO {
+public class BancoDadosService {
 
     private Connection conn = null;
 
-    public BancoDadosService(Connection conn) {
+    public BancoDadosService(Connection conn, boolean podeDeletarTabelaTemp) throws SQLException {
         this.conn = conn;
-    }
-
-    public void criarBancoLcTributacao() throws SQLException {
-        try (PreparedStatement pstm = conn.prepareStatement("CREATE DATABASE IF NOT EXISTS lc_tributacao;")) {
-            pstm.executeUpdate();
-        } catch (SQLException e) {
-            TelaInicial.getLog("Erro ao criar banco de dados (banco: lc_tributação): " + e.getMessage());
+        if (podeDeletarTabelaTemp) {
+            deletarTabelaTributacaoTemp();
         }
     }
 
-    public void criarTabelaProduto() throws SQLException {
-        deletarTabelaProdutos();
-        
-        try (PreparedStatement pstm = conn.prepareStatement("CREATE TABLE lc_tributacao.`produtos` (\n"
+    public void criarTabelaTributacaoTemp() throws SQLException {
+        try (PreparedStatement pstm = conn.prepareStatement("CREATE TABLE `tributacaoTemp` (\n"
                 + "  `id_produto` INTEGER(11),\n"
                 + "  `barras` VARCHAR(30),\n"
                 + "  `nome` VARCHAR(180),\n"
@@ -56,12 +52,12 @@ public class BancoDadosService extends GenericMysqlDAO {
             pstm.executeUpdate();
 
         } catch (SQLException e) {
-            TelaInicial.getLog("Erro ao criar tabela 'produtos' (banco: lc_tributação): " + e.getMessage());
-        } 
+            throw new Exceptions("Erro ao criar tabela 'tributacaoTemp' (banco: " + dataBase + "): " + e.getMessage());
+        }
     }
 
-    public void criarBackupTabelaProduto() throws IOException {
-        String comando = String.format("mysqldump --host=localhost --user=" + usuario + " --password=" + senha + " " + dataBase + " produto > produto.sql");
+    public void backupTabelasProdutosEGrupoTributacaoBancoPrincipal() throws IOException, InterruptedException {
+        String comando = String.format("mysqldump --host=localhost --user=" + usuario + " --password=" + senha + " " + dataBase + " produto grupotributacao > produtoEgrupotributacao.sql");
 
         try {
             ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", comando);
@@ -69,25 +65,26 @@ public class BancoDadosService extends GenericMysqlDAO {
             Process process = processBuilder.start();
 
             int exitCode = process.waitFor();
-            
+
             if (exitCode == 0) {
-                TelaInicial.getLog("\n**** BACKUP ****\nCaminho: C:\\LC sistemas - Softhouse\\produto.sql");
+                TelaInicial.getLog("\n**** BACKUP ****\nCaminho: C:\\LC sistemas - Softhouse\\produtoEgrupotributacao.sql");
                 System.out.println("Backup criado com sucesso.");
             } else {
                 TelaInicial.getLog("**** Erro ao criar o backup ****");
             }
-            
-        } catch (IOException | InterruptedException e) {
-            TelaInicial.getLog("Erro inesperado! \n\n" + e.getMessage());
-            System.out.println(e.getMessage());
-        }
+
+        } catch (IOException e) {
+            throw new Exceptions("Erro ao criar backup das tabelas produtoEgrupotributacao.sql:\n" + e.getMessage());
+        } catch (InterruptedException e) {
+            throw new Exceptions("Erro inesperado!\n" + e.getMessage());
+        } 
     }
 
-    private void deletarTabelaProdutos() throws SQLException {
-        try (PreparedStatement pstm = conn.prepareStatement("DROP TABLE IF EXISTS lc_tributacao.`produtos`;")){
+    public void deletarTabelaTributacaoTemp() throws SQLException {
+        try (PreparedStatement pstm = conn.prepareStatement("DROP TABLE IF EXISTS `tributacaoTemp`;")) {
             pstm.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Erro ao deletar tabela 'produtos' (banco: lc_tributação): " + e.getMessage());
-        } 
+            throw new Exceptions("Erro ao deletar tabela 'tributacaoTemp' (banco: " + dataBase + "): " + e.getMessage());
+        }
     }
 }

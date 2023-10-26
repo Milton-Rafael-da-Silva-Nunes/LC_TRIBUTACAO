@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import lc_tributacao.controller.exceptions.Exceptions;
 import lc_tributacao.model.entities.Produtos;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
@@ -85,7 +86,7 @@ public class ProdutosExportService {
             workbook.write(fileOut);
 
         } catch (IOException e) {
-            System.out.println("Erro ao exportar produtos.xls: " + e.getMessage());
+            throw new Exceptions("Erro ao gerar planilha CLASSIFICAO DE TRIBUTOS.xls: " + e.getMessage());
         }
     }
 
@@ -141,7 +142,7 @@ public class ProdutosExportService {
             }
             
         } catch (SQLException e) {
-            System.out.println("Erro ao gerar lista de produtos: " + e.getMessage());
+            throw new Exceptions("Erro ao gerar lista de produtos: " + e.getMessage());
         }
         return listaProduto;
     }

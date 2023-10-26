@@ -26,7 +26,7 @@ public class ProdutosDao {
         this.conn = conn;
     }
 
-    public void executarAcoesNoBanco() throws SQLException {
+    public void executarAcoesNoBancoPrincipal() throws SQLException {
         TelaInicial.getLog("\n**** RESULTADO ****\n-> Inseridos");
         inserirNovosNCMs();
         inserirNovosCESTs();
@@ -45,7 +45,7 @@ public class ProdutosDao {
     }
 
     public void InserirProdutosNoBanco(List<Produtos> listaProdutos) throws SQLException {
-        try (PreparedStatement pstm = conn.prepareStatement("INSERT INTO lc_tributacao.produtos(id_produto, barras, nome, cst, cfop, ncm, cest, pis, cofins, ipi, origem, genero, pis_aliq, cofins_aliq, ipi_aliq, icms_aliq, icms_aliq_red_bc, data_hora) "
+        try (PreparedStatement pstm = conn.prepareStatement("INSERT INTO tributacaotemp(id_produto, barras, nome, cst, cfop, ncm, cest, pis, cofins, ipi, origem, genero, pis_aliq, cofins_aliq, ipi_aliq, icms_aliq, icms_aliq_red_bc, data_hora) "
                 + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 
             for (Produtos produto : listaProdutos) {
@@ -72,7 +72,7 @@ public class ProdutosDao {
 
         } catch (SQLException e) {
             e.printStackTrace();
-            TelaInicial.getLog("Erro ao inserir produto: " + e.getMessage());
+            throw new Exceptions("Erro ao inserir produtos na tabela 'tributacaotemp': " + e.getMessage());
         }
     }
 
@@ -82,8 +82,8 @@ public class ProdutosDao {
 
             for (GrupoTributacao grupo : listaGrupos) {
                 pstm.setString(1, grupo.getNome());
-                pstm.setString(2, "PA");
-                pstm.setInt(3, 14);
+                pstm.setString(2, grupo.getUf());
+                pstm.setInt(3, grupo.getIdEstado());
                 pstm.setInt(4, grupo.getIdNcm());
                 pstm.setInt(5, grupo.getIdCest());
                 pstm.setInt(6, grupo.getIdCst());
@@ -126,12 +126,10 @@ public class ProdutosDao {
                 // Logica para setar a ID do retorno do grupo de tributacao inserido.
                 if (linhas > 0) {
                     ResultSet rs = pstm.getGeneratedKeys();
-
                     if (rs.next()) {
                         int id = rs.getInt(1);
                         grupo.setId(id);
                     }
-
                     rs.close();
                 } else {
                     throw new Exceptions("Erro inesperado! \n\n\nNenhuma linha efetada!");
@@ -143,27 +141,27 @@ public class ProdutosDao {
 
         } catch (SQLException e) {
             e.printStackTrace();
-            TelaInicial.getLog("Erro ao inserir Grupo de Tributação: " + e.getMessage());
+            throw new Exceptions("Erro ao inserir Grupo de Tributação: " + e.getMessage());
         }
     }
 
     private void inserirNovosNCMs() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement("INSERT INTO ncm(codigo, ex, descricao, aliquota_nacional, aliquota_internacional, aliquota_estadual, aliquota_municipal, vigenciainicio, vigenciafim, chave, versao, ativo) "
-                + "SELECT ncm, '', '', 0.000, 0.000, 0.000, 0.000, null, null, '', '', 1 FROM lc_tributacao.produtos "
+                + "SELECT ncm, '', '', 0.000, 0.000, 0.000, 0.000, null, null, '', '', 1 FROM tributacaotemp "
                 + "WHERE length(ncm) = 8 "
-                + "AND ncm NOT IN(SELECT codigo FROM lc_sistemas.ncm)GROUP BY ncm;")) {
+                + "AND ncm NOT IN(SELECT codigo FROM ncm)GROUP BY ncm;")) {
 
             int resultado = pstm.executeUpdate();
             TelaInicial.getLog("NCM : " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLog("Erro ao inserir novos NCMs -> " + e.getMessage());
+            throw new Exceptions("Erro ao inserir novos NCMs -> " + e.getMessage());
         }
     }
 
     private void inserirNovosCESTs() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement("INSERT INTO cest(cest, ncm, descricao) "
-                + "SELECT cest, '00000000', '' FROM lc_tributacao.produtos "
+                + "SELECT cest, '00000000', '' FROM tributacaotemp "
                 + "WHERE length(cest)=7 "
                 + "AND cest NOT IN(SELECT cest FROM cest)GROUP BY cest;")) {
 
@@ -171,14 +169,14 @@ public class ProdutosDao {
             TelaInicial.getLog("CEST: " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLog("Erro ao inserir novos CESTs -> " + e.getMessage());
+            throw new Exceptions("Erro ao inserir novos CESTs -> " + e.getMessage());
         }
     }
 
     private void updateProdutosIdNCM() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
-                + "INNER JOIN lc_tributacao.produtos pp ON pp.id_produto = p.id "
+                + "INNER JOIN tributacaotemp pp ON pp.id_produto = p.id "
                 + "INNER JOIN ncm n ON n.codigo = pp.ncm "
                 + "SET p.id_ncm = n.id "
                 + "WHERE p.id_ncm != n.id;")) {
@@ -187,14 +185,14 @@ public class ProdutosDao {
             TelaInicial.getLog("NCM   : " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLog("Erro ao executar Update em PRODUTO 'id_ncm' -> " + e.getMessage());
+            throw new Exceptions("Erro ao executar Update em PRODUTO 'id_ncm' -> " + e.getMessage());
         }
     }
 
     private void updateProdutosIdCEST() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
-                + "INNER JOIN lc_tributacao.produtos pp ON pp.id_produto = p.id "
+                + "INNER JOIN tributacaotemp pp ON pp.id_produto = p.id "
                 + "INNER JOIN cest c ON c.cest = pp.cest "
                 + "SET p.id_cest = c.id "
                 + "WHERE p.id_cest != c.id;")) {
@@ -203,14 +201,14 @@ public class ProdutosDao {
             TelaInicial.getLog("CEST  : " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLog("Erro ao executar Update em PRODUTO 'id_cest' -> " + e.getMessage());
+            throw new Exceptions("Erro ao executar Update em PRODUTO 'id_cest' -> " + e.getMessage());
         }
     }
 
     private void updateProdutosIdCST() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
-                + "INNER JOIN lc_tributacao.produtos t ON t.id_produto = p.id "
+                + "INNER JOIN tributacaotemp t ON t.id_produto = p.id "
                 + "INNER JOIN cst c ON c.codigotributario = t.cst "
                 + "SET p.id_cst = c.id "
                 + "WHERE p.id_cst != c.id;")) {
@@ -219,14 +217,14 @@ public class ProdutosDao {
             TelaInicial.getLog("CST   : " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLog("Erro ao executar Update em PRODUTO 'id_cst' -> " + e.getMessage());
+            throw new Exceptions("Erro ao executar Update em PRODUTO 'id_cst' -> " + e.getMessage());
         }
     }
 
     private void updateProdutosIdCFOP() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
-                + "INNER JOIN lc_tributacao.produtos pp ON pp.id_produto = p.id "
+                + "INNER JOIN tributacaotemp pp ON pp.id_produto = p.id "
                 + "INNER JOIN cfop c ON c.codigocfop = pp.cfop "
                 + "SET p.id_cfop = c.id "
                 + "WHERE p.id_cfop != c.id;")) {
@@ -235,14 +233,14 @@ public class ProdutosDao {
             TelaInicial.getLog("CFOP  : " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLog("Erro ao executar Update em PRODUTO 'id_cfop' -> " + e.getMessage());
+            throw new Exceptions("Erro ao executar Update em PRODUTO 'id_cfop' -> " + e.getMessage());
         }
     }
 
     private void updateProdutosPisEAliquota() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
-                + "INNER JOIN lc_tributacao.produtos t ON t.id_produto = p.id "
+                + "INNER JOIN tributacaotemp t ON t.id_produto = p.id "
                 + "SET p.trib_pissaida = t.pis,"
                 + "p.trib_pisaliqsaida = t.pis_aliq "
                 + "WHERE p.trib_pissaida != t.pis;")) {
@@ -251,14 +249,14 @@ public class ProdutosDao {
             TelaInicial.getLog("PIS/ALIQUOTA   : " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLog("Erro ao executar Update PIS -> " + e.getMessage());
+            throw new Exceptions("Erro ao executar Update PIS -> " + e.getMessage());
         }
     }
 
     private void updateProdutosCofinsEAliquota() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
-                + "INNER JOIN lc_tributacao.produtos t ON t.id_produto = p.id "
+                + "INNER JOIN tributacaotemp t ON t.id_produto = p.id "
                 + "SET p.trib_cofinssaida = t.cofins,"
                 + "p.trib_cofinsaliqsaida = t.cofins_aliq "
                 + "WHERE p.trib_cofinssaida != t.cofins;")) {
@@ -267,14 +265,14 @@ public class ProdutosDao {
             TelaInicial.getLog("COFINS/ALIQUOTA: " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLog("Erro ao executar Update COFINS -> " + e.getMessage());
+            throw new Exceptions("Erro ao executar Update COFINS -> " + e.getMessage());
         }
     }
 
     private void updateProdutosIpiEAliquota() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
-                + "INNER JOIN lc_tributacao.produtos t ON t.id_produto = p.id "
+                + "INNER JOIN tributacaotemp t ON t.id_produto = p.id "
                 + "SET p.trib_ipisaida = t.ipi,"
                 + "p.trib_ipialiqsaida = t.ipi_aliq "
                 + "WHERE p.trib_ipisaida != t.ipi;")) {
@@ -283,14 +281,14 @@ public class ProdutosDao {
             TelaInicial.getLog("IPI/ALIQUOTA   : " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLog("Erro ao executar Update IPI -> " + e.getMessage());
+            throw new Exceptions("Erro ao executar Update IPI -> " + e.getMessage());
         }
     }
 
     private void updateProdutosOrigem() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
-                + "INNER JOIN lc_tributacao.produtos t ON t.id_produto = p.id "
+                + "INNER JOIN tributacaotemp t ON t.id_produto = p.id "
                 + "SET p.origem_produto = t.origem "
                 + "WHERE p.origem_produto != t.origem;")) {
 
@@ -298,14 +296,14 @@ public class ProdutosDao {
             TelaInicial.getLog("ORIGEM: " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLog("Erro ao executar Update ORIGEM -> " + e.getMessage());
+            throw new Exceptions("Erro ao executar Update ORIGEM -> " + e.getMessage());
         }
     }
 
     private void updateProdutosGenero() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
-                + "INNER JOIN lc_tributacao.produtos t ON t.id_produto = p.id "
+                + "INNER JOIN tributacaotemp t ON t.id_produto = p.id "
                 + "SET p.trib_genero = t.genero "
                 + "WHERE p.trib_genero != t.genero;")) {
 
@@ -313,7 +311,7 @@ public class ProdutosDao {
             TelaInicial.getLog("GENERO: " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLog("Erro ao executar Update GENERO -> " + e.getMessage());
+            throw new Exceptions("Erro ao executar Update GENERO -> " + e.getMessage());
         }
     }
 
@@ -333,7 +331,7 @@ public class ProdutosDao {
             TelaInicial.getLog("GRUPO TRIBUTACAO: " + resultado);
 
         } catch (SQLException e) {
-            TelaInicial.getLog("Erro ao executar Update em PRODUTO 'id_grupotributcao' -> " + e.getMessage());
+            throw new Exceptions("Erro ao executar Update em PRODUTO 'id_grupotributcao' -> " + e.getMessage());
         }
     }
 

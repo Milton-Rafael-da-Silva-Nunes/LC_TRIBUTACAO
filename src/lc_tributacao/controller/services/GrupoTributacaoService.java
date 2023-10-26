@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import lc_tributacao.controller.exceptions.Exceptions;
+import lc_tributacao.model.entities.Empresa;
 import lc_tributacao.model.entities.GrupoTributacao;
 import lc_tributacao.model.entities.Produtos;
 
@@ -27,17 +29,17 @@ public class GrupoTributacaoService {
         this.conn = conn;
     }
 
-    public List<GrupoTributacao> getListaGruposTributacao(List<Produtos> listasDeProdutos) throws SQLException {
-        return criarGruposTributacao(listasDeProdutos);
+    public List<GrupoTributacao> getListaGruposTributacao(List<Produtos> listasDeProdutos, Empresa empresa) throws SQLException {
+        return criarGruposTributacao(listasDeProdutos, empresa);
     }
 
-    private List<GrupoTributacao> criarGruposTributacao(List<Produtos> listaDeProdutos) {
+    private List<GrupoTributacao> criarGruposTributacao(List<Produtos> listaDeProdutos, Empresa empresa) {
         List<GrupoTributacao> listaGruposTributacao = new ArrayList<>();
         Map<GrupoTributacao, GrupoTributacao> grupoMap = new HashMap<>();
 
         mapaCst = getMapaCst();
         mapaCfop = getMapaCfop();
-        
+
         for (Produtos produto : listaDeProdutos) {
             GrupoTributacao grupoChave = new GrupoTributacao();
             grupoChave.setIdCst(mapaCst.get(produto.getCst()));
@@ -46,8 +48,9 @@ public class GrupoTributacaoService {
             grupoChave.setPisSaida(produto.getPis());
             grupoChave.setCofinsSaida(produto.getCofins());
 
+            // Aqui é usado o Equal e HashCode da classe modelo com base no que foi definido lá.
             if (!grupoMap.containsKey(grupoChave)) {
-                GrupoTributacao novoGrupo = criarNovoGrupoTributacao(produto);
+                GrupoTributacao novoGrupo = criarNovoGrupoTributacao(produto, empresa);
                 listaGruposTributacao.add(novoGrupo);
                 grupoMap.put(grupoChave, novoGrupo);
             }
@@ -56,28 +59,15 @@ public class GrupoTributacaoService {
         return listaGruposTributacao;
     }
 
-    private GrupoTributacao encontrarGrupoCorrespondente(List<GrupoTributacao> lista, Produtos produto) {
-        for (GrupoTributacao grupo : lista) {
-
-            if (grupo.getIdCst() == mapaCst.get(produto.getCst())
-                    && grupo.getIdCfop() == mapaCfop.get(produto.getCfop())
-                    && grupo.getOrigem().equals(produto.getOrigem())
-                    && grupo.getPisSaida().equals(produto.getPis())
-                    && grupo.getCofinsSaida().equals(produto.getCofins())) {
-                return grupo;
-            }
-        }
-
-        return null;
-    }
-
-    private GrupoTributacao criarNovoGrupoTributacao(Produtos produto) {
+    private GrupoTributacao criarNovoGrupoTributacao(Produtos produto, Empresa empresa) {
         GrupoTributacao grupo = new GrupoTributacao();
 
         mapaCst = getMapaCst();
         mapaCfop = getMapaCfop();
 
         grupo.setNome("| CST " + produto.getCst() + "  /  CFOP " + produto.getCfop() + "  /  PIS e COFINS " + produto.getPis() + " * " + produto.getCofins() + "  /  ORIGEM " + produto.getOrigem());
+        grupo.setUf(empresa.getEstado());
+        grupo.setIdEstado(empresa.getIdEstado());
         grupo.setIdCst(mapaCst.get(produto.getCst()));
         grupo.setIdCfop(mapaCfop.get(produto.getCfop()));
         grupo.setOrigem(produto.getOrigem());
@@ -103,7 +93,7 @@ public class GrupoTributacaoService {
             }
 
         } catch (SQLException e) {
-            System.out.println("Erro em getMapCst: " + e.getMessage());
+            throw new Exceptions("Erro em getMapCst: " + e.getMessage());
         }
 
         return map;
@@ -119,7 +109,7 @@ public class GrupoTributacaoService {
             }
 
         } catch (SQLException e) {
-            System.out.println("Erro em getMapaCfop: " + e.getMessage());
+            throw new Exceptions("Erro em getMapCfop: " + e.getMessage());
         }
 
         return map;

@@ -19,6 +19,8 @@ import lc_tributacao.controller.services.BancoDadosService;
 import lc_tributacao.controller.services.ProdutosExportService;
 import lc_tributacao.controller.services.ProdutosImportService;
 import lc_tributacao.controller.services.GrupoTributacaoService;
+import lc_tributacao.model.dao.EmpresaDao;
+import lc_tributacao.model.entities.Empresa;
 import lc_tributacao.model.entities.GrupoTributacao;
 import lc_tributacao.model.entities.Produtos;
 import static lc_tributacao.util.Versao.getVersaoPrograma;
@@ -202,7 +204,7 @@ public final class TelaInicial extends javax.swing.JFrame {
 
     private void btnImportarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImportarActionPerformed
         if (chamarTelaImportar()) {
-            criarBancoDados();
+            criarTabelaTemp();
             importarProdutosDoExcel();
             JOptionPane.showMessageDialog(null, "Produtos atualizados com sucesso!", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
         } else {
@@ -212,7 +214,7 @@ public final class TelaInicial extends javax.swing.JFrame {
 
     private void btnExportarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportarActionPerformed
         if (chamarTelaExportar()) {
-            if (exportarProdutosXls()) {
+            if (podeExportarProdutosXls()) {
                 JOptionPane.showMessageDialog(null, "Tabela exportada com sucesso! \n\n<html><b>Caminho:</b> " + filePath + "\\CLASSIFICAO DE TRIBUTOS.xls</html>", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
                 getLog("Tabela exportada com sucesso!");
             } else {
@@ -223,7 +225,7 @@ public final class TelaInicial extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnExportarActionPerformed
 
-    private Boolean chamarTelaImportar() {
+    private boolean chamarTelaImportar() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Arquivos Excel", "xls"));
         int returnValue = fileChooser.showOpenDialog(null);
@@ -241,7 +243,7 @@ public final class TelaInicial extends javax.swing.JFrame {
         return false;
     }
 
-    private Boolean chamarTelaExportar() {
+    private boolean chamarTelaExportar() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int returnValue = fileChooser.showOpenDialog(null);
@@ -262,49 +264,50 @@ public final class TelaInicial extends javax.swing.JFrame {
     private void importarProdutosDoExcel() {
         if (validarArquivoExcel()) {
             try {
-                ProdutosDao pDao = new ProdutosDao(conn);
-                ProdutosImportService pServic = new ProdutosImportService();
-                List<Produtos> listaDeProdutos = pServic.getProdutosExcel(filePath);
-                
-                pDao.InserirProdutosNoBanco(listaDeProdutos);
-                pDao.inserirNovosGruposDeTributacao(getListaGruposTributacao(listaDeProdutos));
-                pDao.executarAcoesNoBanco();
+                ProdutosDao prodDao = new ProdutosDao(conn);
+                ProdutosImportService prodServic = new ProdutosImportService();
+                List<Produtos> listaDeProdutos = prodServic.getProdutosExcel(filePath);
+
+                prodDao.InserirProdutosNoBanco(listaDeProdutos);
+                prodDao.inserirNovosGruposDeTributacao(obterGruposTributacaoComBaseNosProdutos(listaDeProdutos));
+                prodDao.executarAcoesNoBancoPrincipal();
             } catch (SQLException | IOException ex) {
-                getLog("\n**** ATENÇÂO **** \n" + ex.getMessage());
+                getLog("\n**** ATENÇÃO **** \n" + ex.getMessage());
             }
         }
     }
-    
-    private List<GrupoTributacao> getListaGruposTributacao(List<Produtos> listaDeProdutos) throws SQLException {
-        return new GrupoTributacaoService(conn).getListaGruposTributacao(listaDeProdutos);
+
+    private List<GrupoTributacao> obterGruposTributacaoComBaseNosProdutos(List<Produtos> listaDeProdutos) throws SQLException {
+        int idEmpresa = 1; // valor padrao "POR ENQUANTO"
+        Empresa empresa = new EmpresaDao(conn).getEmpresa(idEmpresa);
+        return new GrupoTributacaoService(conn).getListaGruposTributacao(listaDeProdutos, empresa);
     }
 
-    private void criarBancoDados() {
+    private void criarTabelaTemp() {
+        BancoDadosService bd = null;
+        boolean podeDeletarTabelaTemp = true;
         try {
-            BancoDadosService bd = new BancoDadosService(conn);
-            bd.criarBackupTabelaProduto(); // Backup de segurança
-            bd.criarBancoLcTributacao();
-            bd.criarTabelaProduto();
-        } catch (SQLException e) {
-            getLog("\nErro ao criar banco de dados! \n\n" + e.getMessage());
-        } catch (IOException ex) {
-            getLog("\nErro ao criar backup da tabela de produto! \n\n" + ex.getMessage());
+            bd = new BancoDadosService(conn, podeDeletarTabelaTemp);
+            bd.backupTabelasProdutosEGrupoTributacaoBancoPrincipal(); // Backup de segurança
+            bd.criarTabelaTributacaoTemp();
+        } catch (SQLException | IOException | InterruptedException e) {
+            getLog("\n**** ATENÇÃO ****\n" + e.getMessage());
         }
     }
 
-    private Boolean exportarProdutosXls() {
+    private boolean podeExportarProdutosXls() {
         if (validarArquivoExcel()) {
             try {
                 ProdutosExportService prodExportService = new ProdutosExportService(conn);
                 return prodExportService.gerarProdutosXls(filePath);
             } catch (SQLException | IOException e) {
-                getLog("\n**** ATENÇÂO ****\nErro ao exportar tabela! " + e.getMessage());
+                getLog("\n**** ATENÇÃO ****\n" + e.getMessage());
             }
         }
         return false;
     }
 
-    private Boolean validarArquivoExcel() {
+    private boolean validarArquivoExcel() {
         return !filePath.isEmpty();
     }
 
