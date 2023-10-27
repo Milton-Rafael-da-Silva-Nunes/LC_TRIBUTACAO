@@ -62,13 +62,12 @@ public class CestDao {
 
     private TreeMap<String, String> getMapaCest() throws SQLException{
         TreeMap<String, String> mapaCest = new TreeMap<>();
-
-        try (PreparedStatement pstm = conn.prepareStatement("SELECT cest FROM cest");
+        
+        try (PreparedStatement pstm = conn.prepareStatement("SELECT cest FROM cest;");
                 ResultSet rs = pstm.executeQuery()) {
 
             while (rs.next()) {
                 String chave = rs.getString("cest");
-
                 if (!mapaCest.containsKey(chave)) {
                     mapaCest.put(chave, chave);
                 }

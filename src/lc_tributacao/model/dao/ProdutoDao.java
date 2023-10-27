@@ -10,6 +10,7 @@ import java.util.List;
 import lc_tributacao.controller.conexao.exceptions.Exceptions;
 import lc_tributacao.model.entities.Cest;
 import lc_tributacao.model.entities.GrupoTributacao;
+import lc_tributacao.model.entities.Ncm;
 import lc_tributacao.model.entities.Produto;
 import lc_tributacao.util.DataHora;
 import lc_tributacao.view.TelaInicial;
@@ -21,16 +22,18 @@ import lc_tributacao.view.TelaInicial;
 public class ProdutoDao {
 
     private Connection conn = null;
-    private final List<Integer> listaGrupoDeTributacao = new ArrayList<>();
-    private final List<Integer> listaCest = new ArrayList<>();
 
     public ProdutoDao(Connection conn) throws SQLException {
         this.conn = conn;
     }
 
+    private final List<Integer> listaGrupoDeTributacao = new ArrayList<>();
+    private final List<Integer> listaCest = new ArrayList<>();
+    private final List<Integer> listaNcm = new ArrayList<>();
+
     public void executarAcoesNoBancoPrincipal() throws SQLException {
         TelaInicial.getLog("\n**** RESULTADO ****\n-> Inseridos");
-        inserirNovosNCMs();
+        ncmsInseridos();
         cestsInseridos();
         gruposDeTributacaoInseridos();
         TelaInicial.getLog("-> Atualizados");
@@ -129,8 +132,7 @@ public class ProdutoDao {
                 if (linhas > 0) {
                     ResultSet rs = pstm.getGeneratedKeys();
                     if (rs.next()) {
-                        int id = rs.getInt(1);
-                        grupo.setId(id);
+                        grupo.setId(rs.getInt(1));
                     }
                     rs.close();
                 } else {
@@ -146,15 +148,40 @@ public class ProdutoDao {
         }
     }
 
-    private void inserirNovosNCMs() throws SQLException {
+    public void inserirNovosNCMs(List<Ncm> listaDeNcms) throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement("INSERT INTO ncm(codigo, ex, descricao, aliquota_nacional, aliquota_internacional, aliquota_estadual, aliquota_municipal, vigenciainicio, vigenciafim, chave, versao, ativo) "
-                + "SELECT ncm, '', '', 0.000, 0.000, 0.000, 0.000, null, null, '', '', 1 FROM tributacaotemp "
-                + "WHERE length(ncm) = 8 "
-                + "AND ncm NOT IN(SELECT codigo FROM ncm)GROUP BY ncm;")) {
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
 
-            int resultado = pstm.executeUpdate();
-            TelaInicial.getLog("NCM : " + resultado);
+            int linhas = 0;
 
+            for (Ncm ncm : listaDeNcms) {
+                pstm.setString(1, ncm.getCodigo());
+                pstm.setString(2, ncm.getEx());
+                pstm.setString(3, ncm.getDescricao());
+                pstm.setDouble(4, ncm.getAliquotaNacional());
+                pstm.setDouble(5, ncm.getAliquotaInternacional());
+                pstm.setDouble(6, ncm.getAliquotaEstadual());
+                pstm.setDouble(7, ncm.getAliquotaMunicipal());
+                pstm.setString(8, ncm.getVigenciaInicio());
+                pstm.setString(9, ncm.getVigenciaFim());
+                pstm.setString(10, ncm.getChave());
+                pstm.setString(11, ncm.getVersao());
+                pstm.setInt(12, ncm.getAtivo());
+                linhas = pstm.executeUpdate();
+
+                if (linhas > 0) {
+                    ResultSet rs = pstm.getGeneratedKeys();
+                    if (rs.next()) {
+                        ncm.setId(rs.getInt(1));
+                    }
+                    rs.close();
+                } else {
+                    throw new Exceptions("Erro inesperado! \n\n\nNenhuma linha efetada!");
+                }
+
+                listaNcm.add(1);
+                System.out.println("NOVO NCM: " + ncm);
+            }
         } catch (SQLException e) {
             throw new Exceptions("Erro ao inserir novos NCMs -> " + e.getMessage());
         }
@@ -175,14 +202,13 @@ public class ProdutoDao {
                 if (linhas > 0) {
                     ResultSet rs = pstm.getGeneratedKeys();
                     if (rs.next()) {
-                        int id = rs.getInt(1);
-                        cest.setId(id);
+                        cest.setId(rs.getInt(1));
                     }
                     rs.close();
                 } else {
                     throw new Exceptions("Erro inesperado! \n\n\nNenhuma linha efetada!");
                 }
-                
+
                 listaCest.add(1);
                 System.out.println("NOVO CEST: " + cest);
             }
@@ -360,5 +386,9 @@ public class ProdutoDao {
 
     private void cestsInseridos() {
         TelaInicial.getLog("CEST : " + listaCest.size());
+    }
+
+    private void ncmsInseridos() {
+        TelaInicial.getLog("NCM : " + listaNcm.size());
     }
 }

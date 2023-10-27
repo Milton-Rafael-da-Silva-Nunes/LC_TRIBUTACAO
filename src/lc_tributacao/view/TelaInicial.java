@@ -18,12 +18,14 @@ import lc_tributacao.model.dao.ProdutoDao;
 import lc_tributacao.controller.service.BancoDadosService;
 import lc_tributacao.controller.service.ProdutosExportService;
 import lc_tributacao.controller.service.ProdutosImportService;
-import lc_tributacao.controller.service.GrupoTributacaoService;
+import lc_tributacao.model.dao.GrupoTributacaoDao;
 import lc_tributacao.model.dao.CestDao;
 import lc_tributacao.model.dao.EmpresaDao;
+import lc_tributacao.model.dao.NcmDao;
 import lc_tributacao.model.entities.Cest;
 import lc_tributacao.model.entities.Empresa;
 import lc_tributacao.model.entities.GrupoTributacao;
+import lc_tributacao.model.entities.Ncm;
 import lc_tributacao.model.entities.Produto;
 import static lc_tributacao.util.Versao.getVersaoPrograma;
 
@@ -268,12 +270,11 @@ public class TelaInicial extends javax.swing.JFrame {
                 ProdutoDao prodDao = new ProdutoDao(conn);
                 ProdutosImportService prodServic = new ProdutosImportService();
                 List<Produto> listaDeProdutos = prodServic.getProdutosExcel(filePath);
-                
-                new CestDao(conn).obterCestsComBaseNosProdutos(listaDeProdutos);
 
                 prodDao.InserirProdutosNaTabelaTemp(listaDeProdutos);
                 prodDao.inserirNovosGruposDeTributacaoBancoPrincipal(obterGruposTributacaoComBaseNosProdutosDaEmpresa(listaDeProdutos));
                 prodDao.inserirNovosCESTs(obterCestComBaseNosProdutos(listaDeProdutos));
+                prodDao.inserirNovosNCMs(obterNcmComBaseNosProdutos(listaDeProdutos));
                 prodDao.executarAcoesNoBancoPrincipal();
             } catch (SQLException | IOException ex) {
                 getLog("\n**** ATENÇÃO **** \n" + ex.getMessage());
@@ -284,11 +285,15 @@ public class TelaInicial extends javax.swing.JFrame {
     private List<GrupoTributacao> obterGruposTributacaoComBaseNosProdutosDaEmpresa(List<Produto> listaDeProdutos) throws SQLException {
         int idEmpresa = 1; // valor padrao "POR ENQUANTO"
         Empresa empresa = new EmpresaDao(conn).getEmpresa(idEmpresa);
-        return new GrupoTributacaoService(conn).obterGruposTributacaoComBaseNaLocalidadeDaEmpresa(listaDeProdutos, empresa);
+        return new GrupoTributacaoDao(conn).obterGruposTributacaoComBaseNaLocalidadeDaEmpresa(listaDeProdutos, empresa);
     }
     
     private List<Cest> obterCestComBaseNosProdutos(List<Produto> listaDeProdutos) throws SQLException {
         return new CestDao(conn).obterCestsComBaseNosProdutos(listaDeProdutos);
+    }
+    
+    private List<Ncm> obterNcmComBaseNosProdutos(List<Produto> listaDeProdutos) throws SQLException {
+        return new NcmDao(conn).obterCestsComBaseNosProdutos(listaDeProdutos);
     }
 
     private void criarTabelaTemp() {

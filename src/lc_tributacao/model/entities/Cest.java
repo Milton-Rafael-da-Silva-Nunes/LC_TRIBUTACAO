@@ -11,20 +11,20 @@ public class Cest implements Comparable<Cest>{
     
     private Integer id;
     private String cest;
-    private String ncm;
-    private String descricao;
+    private final String ncm;
+    private final String descricao;
 
     public Cest() {
-        this.ncm = "00000000";
-        this.descricao = "";
+        ncm = "00000000";
+        descricao = "";
     }
 
-    public Cest(Integer id, String cest, String ncm) {
+    public Cest(Integer id, String cest, String ncm, String descricao) {
         this.id = id;
         this.cest = cest;
         this.ncm = ncm;
+        this.descricao = descricao;
     }
-
     public Integer getId() {
         return id;
     }
@@ -45,16 +45,8 @@ public class Cest implements Comparable<Cest>{
         return ncm;
     }
 
-    public void setNcm(String ncm) {
-        this.ncm = ncm;
-    }
-
     public String getDescricao() {
         return descricao;
-    }
-
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
     }
     
     @Override

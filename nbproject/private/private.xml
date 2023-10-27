@@ -3,13 +3,12 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/PROGRAMAÇÃO/PROJETOS-LC/LC_TRIBUTACAO/src/lc_tributacao/controller/service/GrupoTributacaoService.java</file>
             <file>file:/D:/PROGRAMAÇÃO/PROJETOS-LC/LC_TRIBUTACAO/src/lc_tributacao/model/entities/Cest.java</file>
-            <file>file:/D:/PROGRAMAÇÃO/PROJETOS-LC/LC_TRIBUTACAO/src/lc_tributacao/model/entities/GrupoTributacao.java</file>
             <file>file:/D:/PROGRAMAÇÃO/PROJETOS-LC/LC_TRIBUTACAO/src/lc_tributacao/util/Versao.java</file>
             <file>file:/D:/PROGRAMAÇÃO/PROJETOS-LC/LC_TRIBUTACAO/src/lc_tributacao/view/TelaInicial.java</file>
-            <file>file:/D:/PROGRAMAÇÃO/PROJETOS-LC/LC_TRIBUTACAO/src/lc_tributacao/model/dao/ProdutosDao.java</file>
+            <file>file:/D:/PROGRAMAÇÃO/PROJETOS-LC/LC_TRIBUTACAO/src/lc_tributacao/model/dao/ProdutoDao.java</file>
             <file>file:/D:/PROGRAMAÇÃO/PROJETOS-LC/LC_TRIBUTACAO/src/lc_tributacao/model/dao/CestDao.java</file>
+            <file>file:/D:/PROGRAMAÇÃO/PROJETOS-LC/LC_TRIBUTACAO/src/lc_tributacao/model/dao/GrupoTributacaoDao.java</file>
         </group>
     </open-files>
 </project-private>
