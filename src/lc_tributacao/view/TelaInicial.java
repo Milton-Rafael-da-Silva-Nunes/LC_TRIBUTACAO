@@ -14,15 +14,17 @@ import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import lc_tributacao.controller.conexao.GenericMysqlDAO;
 import static lc_tributacao.controller.conexao.GenericMysqlDAO.dataBase;
-import lc_tributacao.model.dao.ProdutosDao;
-import lc_tributacao.controller.services.BancoDadosService;
-import lc_tributacao.controller.services.ProdutosExportService;
-import lc_tributacao.controller.services.ProdutosImportService;
-import lc_tributacao.controller.services.GrupoTributacaoService;
+import lc_tributacao.model.dao.ProdutoDao;
+import lc_tributacao.controller.service.BancoDadosService;
+import lc_tributacao.controller.service.ProdutosExportService;
+import lc_tributacao.controller.service.ProdutosImportService;
+import lc_tributacao.controller.service.GrupoTributacaoService;
+import lc_tributacao.model.dao.CestDao;
 import lc_tributacao.model.dao.EmpresaDao;
+import lc_tributacao.model.entities.Cest;
 import lc_tributacao.model.entities.Empresa;
 import lc_tributacao.model.entities.GrupoTributacao;
-import lc_tributacao.model.entities.Produtos;
+import lc_tributacao.model.entities.Produto;
 import static lc_tributacao.util.Versao.getVersaoPrograma;
 
 /**
@@ -216,7 +218,6 @@ public class TelaInicial extends javax.swing.JFrame {
         if (chamarTelaExportar()) {
             if (podeExportarProdutosXls()) {
                 JOptionPane.showMessageDialog(null, "Tabela exportada com sucesso! \n\n<html><b>Caminho:</b> " + filePath + "\\CLASSIFICAO DE TRIBUTOS.xls</html>", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
-                getLog("Tabela exportada com sucesso!");
             } else {
                 getLog("**** ATENÇÃO ****\nNenhum produto encontrado na base '" + dataBase + "'");
             }
@@ -264,12 +265,15 @@ public class TelaInicial extends javax.swing.JFrame {
     private void importarProdutosDoExcel() {
         if (validarArquivoExcel()) {
             try {
-                ProdutosDao prodDao = new ProdutosDao(conn);
+                ProdutoDao prodDao = new ProdutoDao(conn);
                 ProdutosImportService prodServic = new ProdutosImportService();
-                List<Produtos> listaDeProdutos = prodServic.getProdutosExcel(filePath);
+                List<Produto> listaDeProdutos = prodServic.getProdutosExcel(filePath);
+                
+                new CestDao(conn).obterCestsComBaseNosProdutos(listaDeProdutos);
 
-                prodDao.InserirProdutosNoBanco(listaDeProdutos);
-                prodDao.inserirNovosGruposDeTributacao(obterGruposTributacaoComBaseNosProdutos(listaDeProdutos));
+                prodDao.InserirProdutosNaTabelaTemp(listaDeProdutos);
+                prodDao.inserirNovosGruposDeTributacaoBancoPrincipal(obterGruposTributacaoComBaseNosProdutosDaEmpresa(listaDeProdutos));
+                prodDao.inserirNovosCESTs(obterCestComBaseNosProdutos(listaDeProdutos));
                 prodDao.executarAcoesNoBancoPrincipal();
             } catch (SQLException | IOException ex) {
                 getLog("\n**** ATENÇÃO **** \n" + ex.getMessage());
@@ -277,10 +281,14 @@ public class TelaInicial extends javax.swing.JFrame {
         }
     }
 
-    private List<GrupoTributacao> obterGruposTributacaoComBaseNosProdutos(List<Produtos> listaDeProdutos) throws SQLException {
+    private List<GrupoTributacao> obterGruposTributacaoComBaseNosProdutosDaEmpresa(List<Produto> listaDeProdutos) throws SQLException {
         int idEmpresa = 1; // valor padrao "POR ENQUANTO"
         Empresa empresa = new EmpresaDao(conn).getEmpresa(idEmpresa);
-        return new GrupoTributacaoService(conn).getListaGruposTributacao(listaDeProdutos, empresa);
+        return new GrupoTributacaoService(conn).obterGruposTributacaoComBaseNaLocalidadeDaEmpresa(listaDeProdutos, empresa);
+    }
+    
+    private List<Cest> obterCestComBaseNosProdutos(List<Produto> listaDeProdutos) throws SQLException {
+        return new CestDao(conn).obterCestsComBaseNosProdutos(listaDeProdutos);
     }
 
     private void criarTabelaTemp() {

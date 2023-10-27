@@ -1,4 +1,4 @@
-package lc_tributacao.controller.services;
+package lc_tributacao.controller.service;
 
 import java.io.IOException;
 import java.sql.Connection;

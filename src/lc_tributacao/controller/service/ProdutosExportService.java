@@ -1,4 +1,4 @@
-package lc_tributacao.controller.services;
+package lc_tributacao.controller.service;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -9,7 +9,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import lc_tributacao.controller.conexao.exceptions.Exceptions;
-import lc_tributacao.model.entities.Produtos;
+import lc_tributacao.model.entities.Produto;
+import lc_tributacao.view.TelaInicial;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -22,7 +23,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 public class ProdutosExportService {
 
     private Connection conn = null;
-    List<Produtos> listaProduto = new ArrayList<>();
+    List<Produto> listaProduto = new ArrayList<>();
 
     public ProdutosExportService(Connection conn) throws SQLException {
         this.conn = conn;
@@ -38,7 +39,7 @@ public class ProdutosExportService {
         }
     }
 
-    private void criarProdutosXls(List<Produtos> listaProduto, String filePath) throws IOException {
+    private void criarProdutosXls(List<Produto> listaProduto, String filePath) throws IOException {
         try (Workbook workbook = new HSSFWorkbook(); FileOutputStream fileOut = new FileOutputStream(filePath)) {
 
             Sheet sheet = workbook.createSheet("Produtos");
@@ -64,7 +65,7 @@ public class ProdutosExportService {
             cabecalho.createCell(15).setCellValue("ICMS_RED_BASE_CAL");
 
             // Preencha a planilha com os dados dos produtos
-            for (Produtos produto : listaProduto) {
+            for (Produto produto : listaProduto) {
                 Row linha = sheet.createRow(rowIdx++);
                 linha.createCell(0).setCellValue(produto.getIdProduto());
                 linha.createCell(1).setCellValue(produto.getBarras());
@@ -91,7 +92,7 @@ public class ProdutosExportService {
         }
     }
 
-    private List<Produtos> listaProdutos() throws SQLException {
+    private List<Produto> listaProdutos() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement("SELECT\n"
                 + "P.id as ID_PRODUTO,\n"
                 + "P.codigo_barras as BARRAS,\n"
@@ -116,11 +117,10 @@ public class ProdutosExportService {
                 + "INNER JOIN NCM N ON P.ID_NCM = N.ID\n"
                 + "INNER JOIN CEST CEST ON CEST.ID = P.ID_CEST\n"
                 + "ORDER BY p.id;");
-                
                 ResultSet rs = pstm.executeQuery()) {
 
             while (rs.next()) {
-                Produtos prod = new Produtos();
+                Produto prod = new Produto();
                 prod.setIdProduto(rs.getInt("ID_PRODUTO"));
                 prod.setBarras(rs.getString("BARRAS"));
                 prod.setNome(rs.getString("NOME"));
@@ -141,7 +141,11 @@ public class ProdutosExportService {
                 listaProduto.add(prod);
                 System.out.println("Produtos do BD --> " + prod);
             }
-            
+
+            if (listaProduto.size() > 0) {
+                TelaInicial.getLog("\n**** RESULTADO EXPORTAÇÃO ****\nQuantidade de produtos: " + listaProduto.size());
+            }
+
         } catch (SQLException e) {
             throw new Exceptions("Erro ao gerar lista de produtos: " + e.getMessage());
         }

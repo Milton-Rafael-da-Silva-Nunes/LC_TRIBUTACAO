@@ -1,4 +1,4 @@
-package lc_tributacao.controller.services;
+package lc_tributacao.controller.service;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import lc_tributacao.controller.conexao.exceptions.Exceptions;
-import lc_tributacao.model.entities.Produtos;
+import lc_tributacao.model.entities.Produto;
 import lc_tributacao.view.TelaInicial;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -19,13 +19,13 @@ import org.apache.poi.ss.usermodel.*;
  */
 public class ProdutosImportService {
 
-    public List<Produtos> getProdutosExcel(String path) throws IOException {
+    public List<Produto> getProdutosExcel(String path) throws IOException {
         return listaProdutos(path);
     }
 
-    private List<Produtos> listaProdutos(String filePath) throws IOException {
-        List<Produtos> produtos = new ArrayList<>();
-        List<Produtos> produtosValidos = new ArrayList<>();
+    private List<Produto> listaProdutos(String filePath) throws IOException {
+        List<Produto> produtos = new ArrayList<>();
+        List<Produto> produtosValidos = new ArrayList<>();
 
         try (HSSFWorkbook workbook = lerArquivo(filePath)) {
             Sheet sheet = workbook.getSheetAt(0); // Primeira planilha
@@ -36,7 +36,7 @@ public class ProdutosImportService {
                 if (row.getRowNum() == 0) { // Pula o cabeçalho da planilha
                     continue;
                 }
-                Produtos produto = parseLinha(row);
+                Produto produto = parseLinha(row);
                 produtos.add(produto);
             }
 
@@ -61,8 +61,8 @@ public class ProdutosImportService {
         return new HSSFWorkbook(inputStream, true);
     }
 
-    private Produtos parseLinha(Row row) {
-        Produtos produto = new Produtos();
+    private Produto parseLinha(Row row) {
+        Produto produto = new Produto();
 
         Cell idProdutoCell = row.getCell(0);
         Cell barrasCell = row.getCell(1);
@@ -266,11 +266,11 @@ public class ProdutosImportService {
         return pisCofinsIpiValue;
     }
 
-    private List<Produtos> validarObjetoProdutos(List<Produtos> listaProdutos) {
-        List<Produtos> produtosValidados = new ArrayList<>();
+    private List<Produto> validarObjetoProdutos(List<Produto> listaProdutos) {
+        List<Produto> produtosValidados = new ArrayList<>();
         boolean produtosInvalidosEncontrados = false;
 
-        for (Produtos produto : listaProdutos) {
+        for (Produto produto : listaProdutos) {
 
             if (produto == null || produto.getIdProduto() == 0) {
                 if (!produtosInvalidosEncontrados) {

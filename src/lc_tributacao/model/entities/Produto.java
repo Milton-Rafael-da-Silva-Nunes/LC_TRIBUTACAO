@@ -4,7 +4,7 @@ package lc_tributacao.model.entities;
  *
  * @author Rafael Nunes
  */
-public class Produtos {
+public class Produto {
 
     private Integer idProduto;
     private String barras;
@@ -24,10 +24,10 @@ public class Produtos {
     private Double icmsAliq;
     private Double icmsAliqRedBc;
 
-    public Produtos() {
+    public Produto() {
     }
 
-    public Produtos(Integer idProduto, String barras, String nome, String cst, String cfop, String ncm, String cest, String pis, String cofins, String ipi, String origem, String genero, Double pisAliq, Double cofinsAliq, Double ipiAliq, Double icmsAliq, Double icmsAliqRedBc) {
+    public Produto(Integer idProduto, String barras, String nome, String cst, String cfop, String ncm, String cest, String pis, String cofins, String ipi, String origem, String genero, Double pisAliq, Double cofinsAliq, Double ipiAliq, Double icmsAliq, Double icmsAliqRedBc) {
         this.idProduto = idProduto;
         this.barras = barras;
         this.nome = nome;

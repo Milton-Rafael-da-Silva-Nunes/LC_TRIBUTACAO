@@ -1,4 +1,4 @@
-package lc_tributacao.controller.services;
+package lc_tributacao.controller.service;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,7 +12,7 @@ import java.util.TreeMap;
 import lc_tributacao.controller.conexao.exceptions.Exceptions;
 import lc_tributacao.model.entities.Empresa;
 import lc_tributacao.model.entities.GrupoTributacao;
-import lc_tributacao.model.entities.Produtos;
+import lc_tributacao.model.entities.Produto;
 
 /**
  *
@@ -30,11 +30,11 @@ public class GrupoTributacaoService {
         this.conn = conn;
     }
 
-    public List<GrupoTributacao> getListaGruposTributacao(List<Produtos> listasDeProdutos, Empresa empresa) throws SQLException {
-        return criarGruposTributacao(listasDeProdutos, empresa);
+    public List<GrupoTributacao> obterGruposTributacaoComBaseNaLocalidadeDaEmpresa(List<Produto> listasDeProdutos, Empresa empresa) throws SQLException {
+        return criarGruposTributacaoPorLocalidadeEmpresa(listasDeProdutos, empresa);
     }
 
-    private List<GrupoTributacao> criarGruposTributacao(List<Produtos> listaDeProdutos, Empresa empresa) {
+    private List<GrupoTributacao> criarGruposTributacaoPorLocalidadeEmpresa(List<Produto> listaDeProdutos, Empresa empresa) {
         List<GrupoTributacao> listaGruposTributacao = new ArrayList<>();
         Map<GrupoTributacao, GrupoTributacao> grupoMap = new HashMap<>();
 
@@ -42,7 +42,7 @@ public class GrupoTributacaoService {
         mapaCfop = getMapaCfop();
         mapaGrupoTributacao = getMapaGrupoTributacao();
 
-        for (Produtos produto : listaDeProdutos) {
+        for (Produto produto : listaDeProdutos) {
             GrupoTributacao grupoChave = new GrupoTributacao();
             grupoChave.setIdCst(mapaCst.get(produto.getCst()));
             grupoChave.setIdCfop(mapaCfop.get(produto.getCfop()));
@@ -52,23 +52,23 @@ public class GrupoTributacaoService {
 
             // Aqui é usado o Equal e HashCode da classe modelo com base no que foi definido lá.
             if (!grupoMap.containsKey(grupoChave)) {
-                
-                // Chave criada para verificar se grupo de tributacao ja existe na base.
+
+                // Chave criada para verificar se grupo de tributacao ja existe no banco.
                 String chave = mapaCst.get(produto.getCst()).toString() + mapaCfop.get(produto.getCfop()).toString() + produto.getPis() + produto.getCofins() + produto.getOrigem();
-                
+
                 // Mapa para verificar grupo no banco.
                 if (!mapaGrupoTributacao.containsKey(chave)) {
-                    GrupoTributacao novoGrupo = criarNovoGrupoTributacao(produto, empresa);
+                    GrupoTributacao novoGrupo = criarNovoGrupoTributacaoPorLocalidadeEmpresa(produto, empresa);
                     listaGruposTributacao.add(novoGrupo);
                     grupoMap.put(grupoChave, novoGrupo);
                 }
             }
         }
-        
+
         return listaGruposTributacao;
     }
 
-    private GrupoTributacao criarNovoGrupoTributacao(Produtos produto, Empresa empresa) {
+    private GrupoTributacao criarNovoGrupoTributacaoPorLocalidadeEmpresa(Produto produto, Empresa empresa) {
         GrupoTributacao grupo = new GrupoTributacao();
 
         mapaCst = getMapaCst();
@@ -133,7 +133,6 @@ public class GrupoTributacaoService {
 
                 if (!mapaGrupo.containsKey(chave)) {
                     mapaGrupo.put(chave, chave);
-                    System.out.println("CHAVE MAP: " + chave);
                 }
             }
         } catch (SQLException e) {

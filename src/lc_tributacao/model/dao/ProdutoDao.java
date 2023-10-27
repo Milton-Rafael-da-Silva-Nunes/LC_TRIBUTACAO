@@ -7,10 +7,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
 import lc_tributacao.controller.conexao.exceptions.Exceptions;
+import lc_tributacao.model.entities.Cest;
 import lc_tributacao.model.entities.GrupoTributacao;
-import lc_tributacao.model.entities.Produtos;
+import lc_tributacao.model.entities.Produto;
 import lc_tributacao.util.DataHora;
 import lc_tributacao.view.TelaInicial;
 
@@ -18,19 +18,20 @@ import lc_tributacao.view.TelaInicial;
  *
  * @author Rafael Nunes
  */
-public class ProdutosDao {
+public class ProdutoDao {
 
     private Connection conn = null;
     private final List<Integer> listaGrupoDeTributacao = new ArrayList<>();
+    private final List<Integer> listaCest = new ArrayList<>();
 
-    public ProdutosDao(Connection conn) throws SQLException {
+    public ProdutoDao(Connection conn) throws SQLException {
         this.conn = conn;
     }
 
     public void executarAcoesNoBancoPrincipal() throws SQLException {
         TelaInicial.getLog("\n**** RESULTADO ****\n-> Inseridos");
         inserirNovosNCMs();
-        inserirNovosCESTs();
+        cestsInseridos();
         gruposDeTributacaoInseridos();
         TelaInicial.getLog("-> Atualizados");
         updateProdutosIdNCM();
@@ -45,11 +46,11 @@ public class ProdutosDao {
         updateProdutosIdGrupoTributacao();
     }
 
-    public void InserirProdutosNoBanco(List<Produtos> listaProdutos) throws SQLException {
+    public void InserirProdutosNaTabelaTemp(List<Produto> listaProdutos) throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement("INSERT INTO tributacaotemp(id_produto, barras, nome, cst, cfop, ncm, cest, pis, cofins, ipi, origem, genero, pis_aliq, cofins_aliq, ipi_aliq, icms_aliq, icms_aliq_red_bc, data_hora) "
                 + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 
-            for (Produtos produto : listaProdutos) {
+            for (Produto produto : listaProdutos) {
                 pstm.setInt(1, produto.getIdProduto());
                 pstm.setString(2, produto.getBarras());
                 pstm.setString(3, produto.getNome());
@@ -77,7 +78,7 @@ public class ProdutosDao {
         }
     }
 
-    public void inserirNovosGruposDeTributacao(List<GrupoTributacao> listaGrupos) throws SQLException {
+    public void inserirNovosGruposDeTributacaoBancoPrincipal(List<GrupoTributacao> listaGrupos) throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement("INSERT INTO grupotributacao(nome, uf, id_estado, id_ncm, id_cest, id_cst, id_cfop, id_cfop_bonificacao, id_cfop_devolucao, id_cfop_transferencia, ncm, origem, genero, icms_saida_aliquota, icms_saida_aliquota_red_base_calc, icms_fcp_aliquota, icms_observacao_fiscal, icms_difererimento_aliquota, icms_desonerado_aliquota, icms_st_aliquota, icms_st_red_base_calc_aliquota, icms_isencao_aliquota, icms_iva, icms_codigo_beneficio_fiscal, pis_saida, pis_saida_aliquota, pis_nri, cofins_saida, cofins_saida_aliquota, cofins_nri, ipi_cst, ipi_ex, ipi_aliquota, ipi_codigo_enquadramento, preco_cmv, imendes_codigo_grupo, imendes_codigo_regra, imendes_datahora_alteracao, datahora_alteracao, ativo) "
                 + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", Statement.RETURN_GENERATED_KEYS)) {
 
@@ -139,7 +140,6 @@ public class ProdutosDao {
                 listaGrupoDeTributacao.add(1);
                 System.out.println("NOVO GRUPO: " + grupo);
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
             throw new Exceptions("Erro ao inserir Grupo de Tributação: " + e.getMessage());
@@ -160,16 +160,34 @@ public class ProdutosDao {
         }
     }
 
-    private void inserirNovosCESTs() throws SQLException {
+    public void inserirNovosCESTs(List<Cest> listaCests) throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement("INSERT INTO cest(cest, ncm, descricao) "
-                + "SELECT cest, '00000000', '' FROM tributacaotemp "
-                + "WHERE length(cest)=7 "
-                + "AND cest NOT IN(SELECT cest FROM cest)GROUP BY cest;")) {
+                + "VALUES (?, ?, ?);", Statement.RETURN_GENERATED_KEYS)) {
 
-            int resultado = pstm.executeUpdate();
-            TelaInicial.getLog("CEST: " + resultado);
+            int linhas = 0;
 
+            for (Cest cest : listaCests) {
+                pstm.setString(1, cest.getCest());
+                pstm.setString(2, cest.getNcm());
+                pstm.setString(3, cest.getDescricao());
+                linhas = pstm.executeUpdate();
+
+                if (linhas > 0) {
+                    ResultSet rs = pstm.getGeneratedKeys();
+                    if (rs.next()) {
+                        int id = rs.getInt(1);
+                        cest.setId(id);
+                    }
+                    rs.close();
+                } else {
+                    throw new Exceptions("Erro inesperado! \n\n\nNenhuma linha efetada!");
+                }
+                
+                listaCest.add(1);
+                System.out.println("NOVO CEST: " + cest);
+            }
         } catch (SQLException e) {
+            e.printStackTrace();;
             throw new Exceptions("Erro ao inserir novos CESTs -> " + e.getMessage());
         }
     }
@@ -338,5 +356,9 @@ public class ProdutosDao {
 
     private void gruposDeTributacaoInseridos() {
         TelaInicial.getLog("GRUPO TRIB: " + listaGrupoDeTributacao.size() + "\n");
+    }
+
+    private void cestsInseridos() {
+        TelaInicial.getLog("CEST : " + listaCest.size());
     }
 }
