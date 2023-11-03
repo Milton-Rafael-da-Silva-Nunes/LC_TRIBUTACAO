@@ -16,8 +16,8 @@ import lc_tributacao.controller.conexao.GenericMysqlDAO;
 import static lc_tributacao.controller.conexao.GenericMysqlDAO.dataBase;
 import lc_tributacao.model.dao.ProdutoDao;
 import lc_tributacao.controller.service.BancoDadosService;
-import lc_tributacao.controller.service.ProdutosExportService;
-import lc_tributacao.controller.service.ProdutosImportService;
+import lc_tributacao.controller.service.ProdutoExportExcelService;
+import lc_tributacao.controller.service.ProdutoImportExcelService;
 import lc_tributacao.model.dao.GrupoTributacaoDao;
 import lc_tributacao.model.dao.CestDao;
 import lc_tributacao.model.dao.EmpresaDao;
@@ -268,7 +268,7 @@ public class TelaInicial extends javax.swing.JFrame {
         if (validarArquivoExcel()) {
             try {
                 ProdutoDao prodDao = new ProdutoDao(conn);
-                ProdutosImportService prodServic = new ProdutosImportService();
+                ProdutoImportExcelService prodServic = new ProdutoImportExcelService();
                 List<Produto> listaDeProdutos = prodServic.getProdutosExcel(filePath);
 
                 prodDao.InserirProdutosNaTabelaTemp(listaDeProdutos);
@@ -298,9 +298,9 @@ public class TelaInicial extends javax.swing.JFrame {
 
     private void criarTabelaTemp() {
         BancoDadosService bd = null;
-        boolean podeDeletarTabelaTemp = true;
+        boolean deletarTabelaTemp = true;
         try {
-            bd = new BancoDadosService(conn, podeDeletarTabelaTemp);
+            bd = new BancoDadosService(conn, deletarTabelaTemp);
             bd.backupTabelasProdutosEGrupoTributacaoBancoPrincipal(); // Backup de segurança
             bd.criarTabelaTributacaoTemp();
         } catch (SQLException | IOException | InterruptedException e) {
@@ -311,7 +311,7 @@ public class TelaInicial extends javax.swing.JFrame {
     private boolean podeExportarProdutosXls() {
         if (validarArquivoExcel()) {
             try {
-                ProdutosExportService prodExportService = new ProdutosExportService(conn);
+                ProdutoExportExcelService prodExportService = new ProdutoExportExcelService(conn);
                 return prodExportService.gerarProdutosXls(filePath);
             } catch (SQLException | IOException e) {
                 getLog("\n**** ATENÇÃO ****\n" + e.getMessage());

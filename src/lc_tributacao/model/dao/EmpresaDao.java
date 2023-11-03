@@ -4,9 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import lc_tributacao.controller.conexao.GenericMysqlDAO;
+import static lc_tributacao.controller.conexao.GenericMysqlDAO.dataBase;
 import lc_tributacao.controller.conexao.exceptions.Exceptions;
 import lc_tributacao.model.entities.Empresa;
-import lc_tributacao.view.TelaInicial;
 
 /**
  *
@@ -44,7 +45,7 @@ public class EmpresaDao {
 
             rs.close();
         } catch (SQLException e) {
-            throw new Exceptions("Erro ao buscar empresa no banco de dados: " + e.getMessage());
+            throw new Exceptions("Erro ao buscar empresa no banco de dados: (" + dataBase + ") " + e.getMessage());
         }
 
         return empresa;

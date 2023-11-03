@@ -56,7 +56,7 @@ public class GrupoTributacaoDao {
                 // Chave criada para verificar se grupo de tributacao ja existe no banco.
                 String chave = mapaCst.get(produto.getCst()).toString() + mapaCfop.get(produto.getCfop()).toString() + produto.getPis() + produto.getCofins() + produto.getOrigem();
 
-                // Mapa para verificar grupo no banco.
+                // Mapa para verificar se o grupo no banco existe.
                 if (!mapaGrupoTributacao.containsKey(chave)) {
                     GrupoTributacao novoGrupo = criarNovoGrupoTributacaoPorLocalidadeEmpresa(produto, empresa);
                     listaGruposTributacao.add(novoGrupo);
@@ -64,6 +64,7 @@ public class GrupoTributacaoDao {
                 }
             }
         }
+        
         return listaGruposTributacao;
     }
 
