@@ -104,7 +104,8 @@ public class ProdutoImportExcelService {
 
         if (cstCell != null) {
             cstCell.setCellType(CellType.STRING);
-            produto.setCst(cstCell.getStringCellValue());
+            String cst = cstCell.getStringCellValue();
+            produto.setCst(getCstFormatado(cst));
         } else {
             produto.setCst("");
         }
@@ -251,6 +252,19 @@ public class ProdutoImportExcelService {
                 break;
         }
         return cestValue;
+    }
+    
+    private String getCstFormatado(String cst) {
+        String cstValue;
+        switch (cst.trim().length()) {
+            case 1:
+                cstValue = "0" + cst.trim();
+                break;
+            default:
+                cstValue = cst.trim();
+                break;
+        }
+        return cstValue;
     }
 
     private String getPisCofinsIpiFormatado(String pisCofinsIpi) {

@@ -297,7 +297,7 @@ public class TelaInicial extends javax.swing.JFrame {
     }
 
     private void criarTabelaTemp() {
-        BancoDadosService bd = null;
+        BancoDadosService bd;
         boolean deletarTabelaTemp = true;
         try {
             bd = new BancoDadosService(conn, deletarTabelaTemp);
