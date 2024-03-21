@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import static lc_tributacao.controller.conexao.GenericMysqlDAO.dataBase;
 import static lc_tributacao.controller.conexao.GenericMysqlDAO.senha;
 import static lc_tributacao.controller.conexao.GenericMysqlDAO.usuario;
-import lc_tributacao.controller.conexao.exceptions.Exceptions;
 import lc_tributacao.view.TelaInicial;
 
 /**
@@ -51,8 +50,6 @@ public class BancoDadosService {
 
             pstm.executeUpdate();
 
-        } catch (SQLException e) {
-            throw new Exceptions("Erro ao criar tabela 'tributacaoTemp' (banco: " + dataBase + "): " + e.getMessage());
         }
     }
 
@@ -72,19 +69,14 @@ public class BancoDadosService {
             } else {
                 TelaInicial.getLog("**** Erro ao criar o backup ****");
             }
-
-        } catch (IOException e) {
-            throw new Exceptions("Erro ao criar backup das tabelas produtoEgrupotributacao.sql:\n" + e.getMessage());
-        } catch (InterruptedException e) {
-            throw new Exceptions("Erro inesperado!\n" + e.getMessage());
-        } 
+        } finally {
+            // FINALIZAR CODIGO
+        }
     }
 
     public void deletarTabelaTributacaoTemp() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement("DROP TABLE IF EXISTS `tributacaoTemp`;")) {
             pstm.executeUpdate();
-        } catch (SQLException e) {
-            throw new Exceptions("Erro ao deletar tabela 'tributacaoTemp' (banco: " + dataBase + "): " + e.getMessage());
         }
     }
 }
