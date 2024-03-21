@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import lc_tributacao.controller.conexao.exceptions.Exceptions;
 import lc_tributacao.model.entities.Empresa;
 import lc_tributacao.model.entities.GrupoTributacao;
 import lc_tributacao.model.entities.Produto;
@@ -34,7 +33,7 @@ public class GrupoTributacaoDao {
         return criarGruposTributacaoPorLocalidadeEmpresa(listasDeProdutos, empresa);
     }
 
-    private List<GrupoTributacao> criarGruposTributacaoPorLocalidadeEmpresa(List<Produto> listaDeProdutos, Empresa empresa) {
+    private List<GrupoTributacao> criarGruposTributacaoPorLocalidadeEmpresa(List<Produto> listaDeProdutos, Empresa empresa) throws SQLException {
         List<GrupoTributacao> listaGruposTributacao = new ArrayList<>();
         Map<GrupoTributacao, GrupoTributacao> grupoMap = new HashMap<>();
 
@@ -64,11 +63,11 @@ public class GrupoTributacaoDao {
                 }
             }
         }
-        
+
         return listaGruposTributacao;
     }
 
-    private GrupoTributacao criarNovoGrupoTributacaoPorLocalidadeEmpresa(Produto produto, Empresa empresa) {
+    private GrupoTributacao criarNovoGrupoTributacaoPorLocalidadeEmpresa(Produto produto, Empresa empresa) throws SQLException {
         GrupoTributacao grupo = new GrupoTributacao();
 
         mapaCst = getMapaCst();
@@ -92,7 +91,7 @@ public class GrupoTributacaoDao {
         return grupo;
     }
 
-    private TreeMap<String, Integer> getMapaCst() {
+    private TreeMap<String, Integer> getMapaCst() throws SQLException {
         TreeMap<String, Integer> map = new TreeMap();
 
         try (PreparedStatement pstm = conn.prepareStatement("select id, codigotributario from cst");
@@ -101,13 +100,11 @@ public class GrupoTributacaoDao {
             while (rs.next()) {
                 map.put(rs.getString("codigotributario"), rs.getInt("id"));
             }
-        } catch (SQLException e) {
-            throw new Exceptions("Erro em getMapaCst: " + e.getMessage());
         }
         return map;
     }
 
-    private TreeMap<String, Integer> getMapaCfop() {
+    private TreeMap<String, Integer> getMapaCfop() throws SQLException {
         TreeMap<String, Integer> map = new TreeMap();
 
         try (PreparedStatement pstm = conn.prepareStatement("select id, codigocfop from cfop");
@@ -116,13 +113,11 @@ public class GrupoTributacaoDao {
             while (rs.next()) {
                 map.put(rs.getString("codigocfop"), rs.getInt("id"));
             }
-        } catch (SQLException e) {
-            throw new Exceptions("Erro em getMapaCfop: " + e.getMessage());
         }
         return map;
     }
 
-    private TreeMap<String, String> getMapaGrupoTributacao() {
+    private TreeMap<String, String> getMapaGrupoTributacao() throws SQLException {
         TreeMap<String, String> mapaGrupo = new TreeMap<>();
 
         try (PreparedStatement pstm = conn.prepareStatement("SELECT id_cst, id_cfop, pis_saida, cofins_saida, origem FROM grupotributacao WHERE id > 1;");
@@ -135,8 +130,6 @@ public class GrupoTributacaoDao {
                     mapaGrupo.put(chave, chave);
                 }
             }
-        } catch (SQLException e) {
-            throw new Exceptions("Erro em getMapaGrupoTributacao: " + e.getMessage());
         }
         return mapaGrupo;
     }

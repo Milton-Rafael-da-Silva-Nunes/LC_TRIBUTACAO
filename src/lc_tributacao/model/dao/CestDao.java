@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import lc_tributacao.controller.conexao.exceptions.Exceptions;
 import lc_tributacao.model.entities.Cest;
 import lc_tributacao.model.entities.Produto;
 
@@ -60,9 +59,9 @@ public class CestDao {
         return cest;
     }
 
-    private TreeMap<String, String> getMapaCest() throws SQLException{
+    private TreeMap<String, String> getMapaCest() throws SQLException {
         TreeMap<String, String> mapaCest = new TreeMap<>();
-        
+
         try (PreparedStatement pstm = conn.prepareStatement("SELECT cest FROM cest;");
                 ResultSet rs = pstm.executeQuery()) {
 
@@ -72,8 +71,6 @@ public class CestDao {
                     mapaCest.put(chave, chave);
                 }
             }
-        } catch (SQLException e) {
-            throw new Exceptions("Erro getMapaCest: " + e.getMessage());
         }
         return mapaCest;
     }

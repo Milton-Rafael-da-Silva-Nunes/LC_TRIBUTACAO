@@ -73,9 +73,7 @@ public class NcmDao {
                     mapaNcm.put(chave, chave);
                 }
             }
-        } catch (SQLException e) {
-            throw new Exceptions("Erro getMapaNcm: " + e.getMessage());
-        }
+        } 
         return mapaNcm;
     }
 }
