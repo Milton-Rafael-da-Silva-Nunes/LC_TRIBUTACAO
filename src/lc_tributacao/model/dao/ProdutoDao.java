@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import static lc_tributacao.controller.conexao.GenericMysqlDAO.dataBase;
 import lc_tributacao.controller.conexao.exceptions.Exceptions;
 import lc_tributacao.model.entities.Cest;
 import lc_tributacao.model.entities.GrupoTributacao;
@@ -75,10 +74,6 @@ public class ProdutoDao {
                 pstm.setString(18, DataHora.getDataHoraAtual());
                 pstm.executeUpdate();
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new Exceptions("Erro ao inserir produtos na tabela 'tributacaotemp' do banco (" + dataBase + "): " + e.getMessage());
         }
     }
 
@@ -143,9 +138,6 @@ public class ProdutoDao {
                 listaGrupoDeTributacao.add(1);
                 System.out.println("NOVO GRUPO: " + grupo);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new Exceptions("Erro ao inserir Grupo de Tributação no banco (" + dataBase + "): " + e.getMessage());
         }
     }
 
@@ -183,8 +175,6 @@ public class ProdutoDao {
                 listaNcm.add(1);
                 System.out.println("NOVO NCM: " + ncm);
             }
-        } catch (SQLException e) {
-            throw new Exceptions("Erro ao inserir novos NCMs no banco (" + dataBase + "): " + e.getMessage());
         }
     }
 
@@ -213,9 +203,6 @@ public class ProdutoDao {
                 listaCest.add(1);
                 System.out.println("NOVO CEST: " + cest);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();;
-            throw new Exceptions("Erro ao inserir novos CESTs no banco (" + dataBase + "): " + e.getMessage());
         }
     }
 
@@ -230,8 +217,6 @@ public class ProdutoDao {
             int resultado = pstm.executeUpdate();
             TelaInicial.getLog("NCM   : " + resultado);
 
-        } catch (SQLException e) {
-            throw new Exceptions("Erro ao executar Update em PRODUTO 'id_ncm' no banco (" + dataBase + "): " + e.getMessage());
         }
     }
 
@@ -246,8 +231,6 @@ public class ProdutoDao {
             int resultado = pstm.executeUpdate();
             TelaInicial.getLog("CEST  : " + resultado);
 
-        } catch (SQLException e) {
-            throw new Exceptions("Erro ao executar Update em PRODUTO 'id_cest' no banco (" + dataBase + "): " + e.getMessage());
         }
     }
 
@@ -262,8 +245,6 @@ public class ProdutoDao {
             int resultado = pstm.executeUpdate();
             TelaInicial.getLog("CST   : " + resultado);
 
-        } catch (SQLException e) {
-            throw new Exceptions("Erro ao executar Update em PRODUTO 'id_cst' no banco (" + dataBase + "): " + e.getMessage());
         }
     }
 
@@ -278,8 +259,6 @@ public class ProdutoDao {
             int resultado = pstm.executeUpdate();
             TelaInicial.getLog("CFOP  : " + resultado);
 
-        } catch (SQLException e) {
-            throw new Exceptions("Erro ao executar Update em PRODUTO 'id_cfop' no banco (" + dataBase + "): " + e.getMessage());
         }
     }
 
@@ -294,8 +273,6 @@ public class ProdutoDao {
             int resultado = pstm.executeUpdate();
             TelaInicial.getLog("PIS/ALIQUOTA   : " + resultado);
 
-        } catch (SQLException e) {
-            throw new Exceptions("Erro ao executar Update em PRODUTO 'Pis & Pis_Aliq' no banco (" + dataBase + "): " + e.getMessage());
         }
     }
 
@@ -310,8 +287,6 @@ public class ProdutoDao {
             int resultado = pstm.executeUpdate();
             TelaInicial.getLog("COFINS/ALIQUOTA: " + resultado);
 
-        } catch (SQLException e) {
-            throw new Exceptions("Erro ao executar Update em PRODUTO 'Cofins & Cofins_Aliq' no banco (" + dataBase + "): " + e.getMessage());
         }
     }
 
@@ -326,8 +301,6 @@ public class ProdutoDao {
             int resultado = pstm.executeUpdate();
             TelaInicial.getLog("IPI/ALIQUOTA   : " + resultado);
 
-        } catch (SQLException e) {
-            throw new Exceptions("Erro ao executar Update em PRODUTO 'Ipi & Ipi_Aliq' no banco (" + dataBase + "): " + e.getMessage());
         }
     }
 
@@ -341,8 +314,6 @@ public class ProdutoDao {
             int resultado = pstm.executeUpdate();
             TelaInicial.getLog("ORIGEM: " + resultado);
 
-        } catch (SQLException e) {
-            throw new Exceptions("Erro ao executar Update em PRODUTO 'Origem' no banco (" + dataBase + "): " + e.getMessage());
         }
     }
 
@@ -356,12 +327,10 @@ public class ProdutoDao {
             int resultado = pstm.executeUpdate();
             TelaInicial.getLog("GENERO: " + resultado);
 
-        } catch (SQLException e) {
-            throw new Exceptions("Erro ao executar Update em PRODUTO 'Genero' no banco (" + dataBase + "): " + e.getMessage());
         }
     }
 
-    private void updateProdutosIdGrupoTributacao() {
+    private void updateProdutosIdGrupoTributacao() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
                 + "INNER JOIN grupotributacao g on g.id_cst = p.id_cst "
@@ -376,8 +345,6 @@ public class ProdutoDao {
             int resultado = pstm.executeUpdate();
             TelaInicial.getLog("GRUPO TRIBUTACAO: " + resultado);
 
-        } catch (SQLException e) {
-            throw new Exceptions("Erro ao executar Update em PRODUTO 'id_grupotributcao' no banco (" + dataBase + "): " + e.getMessage());
         }
     }
 
