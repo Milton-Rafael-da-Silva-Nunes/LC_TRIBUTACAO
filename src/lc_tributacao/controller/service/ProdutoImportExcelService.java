@@ -19,39 +19,30 @@ import org.apache.poi.ss.usermodel.*;
  */
 public class ProdutoImportExcelService {
 
-    public List<Produto> getProdutosExcel(String path) throws IOException {
+    public List<Produto> getProdutosDoArquivoExcel(String path) throws IOException, FileNotFoundException, NumberFormatException, IllegalStateException {
         return listaProdutos(path);
     }
 
-    private List<Produto> listaProdutos(String filePath) throws IOException {
+    private List<Produto> listaProdutos(String filePath) throws IOException, FileNotFoundException, NumberFormatException, IllegalStateException {
         List<Produto> produtos = new ArrayList<>();
         List<Produto> produtosValidos = new ArrayList<>();
 
-        try (HSSFWorkbook workbook = lerArquivo(filePath)) {
-            Sheet sheet = workbook.getSheetAt(0); // Primeira planilha
+        HSSFWorkbook workbook = lerArquivo(filePath);
+        Sheet sheet = workbook.getSheetAt(0); // Primeira planilha
 
-            Iterator<Row> rowIterator = sheet.iterator();
-            while (rowIterator.hasNext()) {
-                Row row = rowIterator.next();
-                if (row.getRowNum() == 0) { // Pula o cabeçalho da planilha
-                    continue;
-                }
-                Produto produto = parseLinha(row);
-                produtos.add(produto);
+        Iterator<Row> rowIterator = sheet.iterator();
+        while (rowIterator.hasNext()) {
+            Row row = rowIterator.next();
+            if (row.getRowNum() == 0) { // Pula o cabeçalho da planilha
+                continue;
             }
-
-            produtosValidos = validarObjetoProdutos(produtos);
-
-            TelaInicial.getLog("\n**** LOG ****\nProdutos na planilha: " + produtosValidos.size());
-
-        } catch (FileNotFoundException e) {
-            throw new Exceptions("Arquivo não encontrado: " + e.getMessage() + "\n");
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-            throw new Exceptions("Formato numerico invalido: " + e.getMessage() + "\n");
-        } catch (IllegalStateException e) {
-            throw new Exceptions("Erro geral: " + e.getMessage());
+            Produto produto = parseLinha(row);
+            produtos.add(produto);
         }
+
+        produtosValidos = validarObjetoProdutos(produtos);
+
+        TelaInicial.getLog("\n**** LOG ****\nProdutos na planilha: " + produtosValidos.size());
 
         return produtosValidos; // Só retorna OBJETO validos
     }
@@ -213,13 +204,25 @@ public class ProdutoImportExcelService {
     }
 
     private Double returnDoubleValue(Cell doubleValueCell) {
-        double doubleValue = 0.0;
-        if (doubleValueCell.getCellType() == CellType.STRING) {
-            doubleValue = Double.parseDouble(doubleValueCell.getStringCellValue().trim());
-        } else if (doubleValueCell.getCellType() == CellType.NUMERIC) {
-            doubleValue = doubleValueCell.getNumericCellValue();
+        if (doubleValueCell == null) {
+            return null;
         }
-        return doubleValue;
+
+        String cellValue = "";
+        if (doubleValueCell.getCellType() == CellType.STRING) {
+            cellValue = doubleValueCell.getStringCellValue().trim();
+
+            if (cellValue.contains(",") && cellValue.contains(".")) {
+                cellValue = cellValue.replace(".", "").replace(",", ".");
+            } else if (cellValue.contains(",")) {
+                cellValue = cellValue.replace(",", ".");
+            }
+
+        } else if (doubleValueCell.getCellType() == CellType.NUMERIC) {
+            cellValue = String.valueOf(doubleValueCell.getNumericCellValue());
+        }
+
+        return Double.parseDouble(cellValue);
     }
 
     private String getNcmFormatado(String ncm) {
@@ -253,7 +256,7 @@ public class ProdutoImportExcelService {
         }
         return cestValue;
     }
-    
+
     private String getCstFormatado(String cst) {
         String cstValue;
         switch (cst.trim().length()) {

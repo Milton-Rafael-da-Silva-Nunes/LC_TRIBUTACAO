@@ -2,6 +2,7 @@ package lc_tributacao.view;
 
 import java.awt.Color;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -250,19 +251,32 @@ public class TelaInicial extends javax.swing.JFrame {
     }
 
     private void importarProdutosDoExcel() {
-        if (validarArquivoExcel()) {
+        if (!filePath.isEmpty()) {
             try {
                 ProdutoDao prodDao = new ProdutoDao(conn);
                 ProdutoImportExcelService prodServic = new ProdutoImportExcelService();
-                List<Produto> listaDeProdutos = prodServic.getProdutosExcel(filePath);
+                List<Produto> listaDeProdutos = prodServic.getProdutosDoArquivoExcel(filePath);
 
                 prodDao.InserirProdutosNaTabelaTemp(listaDeProdutos);
                 prodDao.inserirNovosGruposDeTributacaoBancoPrincipal(obterGruposTributacaoComBaseNosProdutosDaEmpresa(listaDeProdutos));
                 prodDao.inserirNovosCESTs(obterCestComBaseNosProdutos(listaDeProdutos));
                 prodDao.inserirNovosNCMs(obterNcmComBaseNosProdutos(listaDeProdutos));
                 prodDao.executarAcoesNoBancoPrincipal();
-            } catch (SQLException | IOException ex) {
-                getLog("\n**** ATENÇÃO **** \n" + ex.getMessage());
+            } catch (FileNotFoundException e) {
+                getLog("\n**** ATENÇÃO **** \nArquivo não encontrado: " + e.getMessage());
+                e.printStackTrace();
+            } catch (IOException e) {
+                getLog("\n**** ATENÇÃO **** \n:Arquivo de entrada inválido " + e.getMessage());
+                e.printStackTrace();
+            } catch (NumberFormatException e) {
+                getLog("\n**** ATENÇÃO **** \nFormato numérico invalido: " + e.getMessage());
+                e.printStackTrace();
+            } catch (IllegalStateException e) {
+                getLog("\n**** ATENÇÃO **** \nErro inesperado: " + e.getMessage());
+                e.printStackTrace();
+            } catch (SQLException e){
+                getLog("\n**** ATENÇÃO **** \nErro na execução da Query: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
@@ -315,10 +329,6 @@ public class TelaInicial extends javax.swing.JFrame {
             getLog("\n**** ATENÇÃO ****\nErro inesperado: " + e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    private boolean validarArquivoExcel() {
-        return !filePath.isEmpty();
     }
 
     public static void getLog(String texto) {
