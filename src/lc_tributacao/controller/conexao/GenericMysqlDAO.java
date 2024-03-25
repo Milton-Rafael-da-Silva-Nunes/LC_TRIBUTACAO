@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import javax.swing.JOptionPane;
 import lc_tributacao.controller.conexao.exceptions.Exceptions;
 
 /**
@@ -23,11 +24,11 @@ public class GenericMysqlDAO {
     public static String senha;
     private String porta;
 
-    public GenericMysqlDAO() {
+    public GenericMysqlDAO() throws IOException {
         setarLoginBanco(); // Na instanciação da Classe ja executa esse metodo;
     }
 
-    private void setarLoginBanco() {
+    private void setarLoginBanco() throws FileNotFoundException, IOException {
         File file = new File(System.getProperty("user.dir") + "\\rede.txt");
 
         if (!file.exists()) {
@@ -57,10 +58,6 @@ public class GenericMysqlDAO {
                         porta = (linha.split(":")[1]);
                     }
                 }
-            } catch (FileNotFoundException e) {
-                throw new Exceptions("Erro! Arquivo rede.txt não encontrado:" + e.getMessage() + "\n\n\nCaminho: " + file.getPath());
-            } catch (IOException e) {
-                throw new Exceptions("Erro na leitura do arquivo rede.txt:" + e.getMessage());
             }
         }
     }
@@ -72,18 +69,20 @@ public class GenericMysqlDAO {
         return conn;
     }
 
-    private void abrirConexao() throws Exception {
+    private void abrirConexao() throws ClassNotFoundException, SQLException {
         try {
             String url = "jdbc:mysql://localhost:" + porta + "/" + dataBase + "?useUnicode=true&characterEncoding=UTF-8";
             Class.forName(driver);
             conn = DriverManager.getConnection(url, usuario, senha);
             System.out.println("Conexao Mysql efetuada com sucesso!");
         } catch (ClassNotFoundException | SQLException ex) {
-            throw new Exceptions("\nNão Foi Possivel Conctar ao Servidor\nVerifique a Conecxao\n\n\n" + ex.getMessage());
+            ex.getMessage();
+            JOptionPane.showMessageDialog(null, "\nNão Foi Possivel Conctar ao Servidor\nVerifique a Conexão com o banco de dados\n\n\n" + ex.getMessage(), "Error", JOptionPane.WARNING_MESSAGE);
+            System.exit(0);
         }
     }
 
-    public static void closeConnection(Connection conn) {
+    public static void closeConnection(Connection conn) throws SQLException {
         if (conn != null) {
             try {
                 conn.close();

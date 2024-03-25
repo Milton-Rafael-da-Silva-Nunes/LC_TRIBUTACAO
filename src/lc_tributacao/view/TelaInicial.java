@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -28,6 +27,7 @@ import lc_tributacao.model.entities.Empresa;
 import lc_tributacao.model.entities.GrupoTributacao;
 import lc_tributacao.model.entities.Ncm;
 import lc_tributacao.model.entities.Produto;
+import static lc_tributacao.util.LogoPrincipal.getLogoPrincipal;
 import static lc_tributacao.util.Versao.getVersaoPrograma;
 
 /**
@@ -41,15 +41,9 @@ public class TelaInicial extends javax.swing.JFrame {
 
     public TelaInicial() throws Exception {
         initComponents();
-        imagemLc();
+        getLogoPrincipal();
         lblCaminhoArq.setText(" Ex: Documentos\\AJUSTE - TRIBUTARIO.xls");
         lblCaminhoArq.setForeground(Color.GRAY);
-    }
-
-    private void imagemLc() {
-        ImageIcon icon = new ImageIcon("src/lc_tributacao/imagem/novaLogoLC.gif"); // novaLogoLC.gif
-        icon.setImage(icon.getImage().getScaledInstance(158, 48, 15));
-        lblImg.setIcon(icon);
     }
 
     @SuppressWarnings("unchecked")
@@ -131,10 +125,10 @@ public class TelaInicial extends javax.swing.JFrame {
             }
         });
 
-        jLabel5.setFont(new java.awt.Font("Dialog", 3, 9)); // NOI18N
+        jLabel5.setFont(new java.awt.Font("Dialog", 3, 10)); // NOI18N
         jLabel5.setForeground(new java.awt.Color(255, 51, 51));
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel5.setText("Padrões de Colunas:");
+        jLabel5.setText("Ordem de Colunas:");
 
         btnExportar.setFont(new java.awt.Font("Dialog", 0, 14)); // NOI18N
         btnExportar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/lc_tributacao/imagem/export-excel.png"))); // NOI18N
@@ -162,11 +156,11 @@ public class TelaInicial extends javax.swing.JFrame {
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(30, 30, 30)
-                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(24, 24, 24)
+                        .addComponent(jLabel5)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel3)
-                        .addGap(0, 33, Short.MAX_VALUE)))
+                        .addGap(0, 41, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -185,14 +179,14 @@ public class TelaInicial extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnImportar, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnExportar, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(32, 32, 32)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 37, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
-        setSize(new java.awt.Dimension(952, 626));
+        setSize(new java.awt.Dimension(952, 625));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
@@ -274,36 +268,10 @@ public class TelaInicial extends javax.swing.JFrame {
             } catch (IllegalStateException e) {
                 getLog("\n**** ATENÇÃO **** \nErro inesperado: " + e.getMessage());
                 e.printStackTrace();
-            } catch (SQLException e){
+            } catch (SQLException e) {
                 getLog("\n**** ATENÇÃO **** \nErro na execução da Query: " + e.getMessage());
                 e.printStackTrace();
             }
-        }
-    }
-
-    private List<GrupoTributacao> obterGruposTributacaoComBaseNosProdutosDaEmpresa(List<Produto> listaDeProdutos) throws SQLException {
-        int idEmpresa = 1; // valor padrao "POR ENQUANTO"
-        Empresa empresa = new EmpresaDao(conn).getEmpresa(idEmpresa);
-        return new GrupoTributacaoDao(conn).obterGruposTributacaoComBaseNaLocalidadeDaEmpresa(listaDeProdutos, empresa);
-    }
-
-    private List<Cest> obterCestComBaseNosProdutos(List<Produto> listaDeProdutos) throws SQLException {
-        return new CestDao(conn).obterCestsComBaseNosProdutos(listaDeProdutos);
-    }
-
-    private List<Ncm> obterNcmComBaseNosProdutos(List<Produto> listaDeProdutos) throws SQLException {
-        return new NcmDao(conn).obterCestsComBaseNosProdutos(listaDeProdutos);
-    }
-
-    private void criarTabelaTemp() {
-        BancoDadosService bd;
-        boolean deletarTabelaTemp = true;
-        try {
-            bd = new BancoDadosService(conn, deletarTabelaTemp);
-            bd.backupTabelasProdutosEGrupoTributacaoBancoPrincipal(); // Backup de segurança
-            bd.criarTabelaTributacaoTemp();
-        } catch (SQLException | IOException | InterruptedException e) {
-            getLog("\n**** ATENÇÃO ****\n" + e.getMessage());
         }
     }
 
@@ -324,6 +292,43 @@ public class TelaInicial extends javax.swing.JFrame {
             e.printStackTrace();
         } catch (IOException e) {
             getLog("\n**** ATENÇÃO ****\nErro ao gerar planilha CLASSIFICAO DE TRIBUTOS.xls: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            getLog("\n**** ATENÇÃO ****\nErro inesperado: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private List<GrupoTributacao> obterGruposTributacaoComBaseNosProdutosDaEmpresa(List<Produto> listaDeProdutos) throws SQLException {
+        int idEmpresa = 1; // valor padrao "POR ENQUANTO"
+        Empresa empresa = new EmpresaDao(conn).getEmpresa(idEmpresa);
+        return new GrupoTributacaoDao(conn).obterGruposTributacaoComBaseNaLocalidadeDaEmpresa(listaDeProdutos, empresa);
+    }
+
+    private List<Cest> obterCestComBaseNosProdutos(List<Produto> listaDeProdutos) throws SQLException {
+        return new CestDao(conn).obterCestsComBaseNosProdutos(listaDeProdutos);
+    }
+
+    private List<Ncm> obterNcmComBaseNosProdutos(List<Produto> listaDeProdutos) throws SQLException {
+        return new NcmDao(conn).obterCestsComBaseNosProdutos(listaDeProdutos);
+    }
+
+    private void criarTabelaTemp() {
+        BancoDadosService bd;
+        boolean deletarTabelaTemp = true;
+
+        try {
+            bd = new BancoDadosService(conn, deletarTabelaTemp);
+            bd.backupTabelasProdutosEGrupoTributacaoBancoPrincipal(); // Backup de segurança
+            bd.criarTabelaTributacaoTemp();
+        } catch (SQLException e) {
+            getLog("\n**** ATENÇÃO ****\nErro ao criar tabela temporaria dos produtos: " + e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            getLog("\n**** ATENÇÃO ****\nErro no arquivo de backup 'dump.sql': " + e.getMessage());
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            getLog("\n**** ATENÇÃO ****\nAção interrompida inesperadamente: " + e.getMessage());
             e.printStackTrace();
         } catch (Exception e) {
             getLog("\n**** ATENÇÃO ****\nErro inesperado: " + e.getMessage());
@@ -367,7 +372,7 @@ public class TelaInicial extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblCaminhoArq;
-    private javax.swing.JLabel lblImg;
+    public static javax.swing.JLabel lblImg;
     private static javax.swing.JTextArea txtLogError;
     // End of variables declaration//GEN-END:variables
 }
