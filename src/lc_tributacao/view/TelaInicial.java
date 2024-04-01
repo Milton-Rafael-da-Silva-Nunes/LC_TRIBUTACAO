@@ -9,8 +9,10 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingWorker;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import lc_tributacao.controller.conexao.GenericMysqlDAO;
 import static lc_tributacao.controller.conexao.GenericMysqlDAO.dataBase;
@@ -27,6 +29,7 @@ import lc_tributacao.model.entities.Empresa;
 import lc_tributacao.model.entities.GrupoTributacao;
 import lc_tributacao.model.entities.Ncm;
 import lc_tributacao.model.entities.Produto;
+import static lc_tributacao.util.BarrasDeProgresso.updateProgressBar;
 import static lc_tributacao.util.LogoPrincipal.getLogoPrincipal;
 import static lc_tributacao.util.Versao.getVersaoPrograma;
 
@@ -38,6 +41,7 @@ public class TelaInicial extends javax.swing.JFrame {
 
     String filePath = "";
     Connection conn = new GenericMysqlDAO().getConnection();
+    String descricaoBarraDeProgresso;
 
     public TelaInicial() throws Exception {
         initComponents();
@@ -62,6 +66,8 @@ public class TelaInicial extends javax.swing.JFrame {
         btnImportar = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
         btnExportar = new javax.swing.JButton();
+        progressBarValor = new javax.swing.JProgressBar();
+        progressBarDescricao = new javax.swing.JProgressBar();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle(getVersaoPrograma());
@@ -97,7 +103,7 @@ public class TelaInicial extends javax.swing.JFrame {
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(lblCaminhoArq, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lblCaminhoArq, javax.swing.GroupLayout.PREFERRED_SIZE, 922, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -139,6 +145,10 @@ public class TelaInicial extends javax.swing.JFrame {
             }
         });
 
+        progressBarValor.setStringPainted(true);
+
+        progressBarDescricao.setStringPainted(true);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -148,19 +158,23 @@ public class TelaInicial extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(btnExportar, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(btnImportar, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1)
+                    .addComponent(progressBarValor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(24, 24, 24)
-                        .addComponent(jLabel5)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel3)
-                        .addGap(0, 41, Short.MAX_VALUE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(24, 24, 24)
+                                .addComponent(jLabel5)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel3))
+                            .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(progressBarDescricao, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -174,29 +188,34 @@ public class TelaInicial extends javax.swing.JFrame {
                 .addGap(13, 13, 13)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 307, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 323, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(20, 20, 20)
+                .addComponent(progressBarDescricao, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(progressBarValor, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnImportar, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnExportar, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 37, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 47, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5))
                 .addContainerGap())
         );
 
-        setSize(new java.awt.Dimension(952, 625));
+        setSize(new java.awt.Dimension(952, 745));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnImportarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImportarActionPerformed
+        getLog("Carregando...");
+
         if (chamarTelaImportar()) {
             criarTabelaTemp();
-            importarProdutosDoExcel();
-            JOptionPane.showMessageDialog(null, "Produtos atualizados com sucesso!", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(null, "<html><b>Atenção</b>...<br>Selecione um arquivo para iniciar!</html>", getVersaoPrograma(), JOptionPane.WARNING_MESSAGE);
+            if (importarProdutosDoExcel(progressBarDescricao)) {
+                System.out.println("Fazendo importação");
+            }
         }
     }//GEN-LAST:event_btnImportarActionPerformed
 
@@ -244,35 +263,92 @@ public class TelaInicial extends javax.swing.JFrame {
         }
     }
 
-    private void importarProdutosDoExcel() {
+    private boolean importarProdutosDoExcel(JProgressBar progressBarDescricao) {
         if (!filePath.isEmpty()) {
             try {
                 ProdutoDao prodDao = new ProdutoDao(conn);
                 ProdutoImportExcelService prodServic = new ProdutoImportExcelService();
                 List<Produto> listaDeProdutos = prodServic.getProdutosDoArquivoExcel(filePath);
 
-                prodDao.InserirProdutosNaTabelaTemp(listaDeProdutos);
-                prodDao.inserirNovosGruposDeTributacaoBancoPrincipal(obterGruposTributacaoComBaseNosProdutosDaEmpresa(listaDeProdutos));
-                prodDao.inserirNovosCESTs(obterCestComBaseNosProdutos(listaDeProdutos));
-                prodDao.inserirNovosNCMs(obterNcmComBaseNosProdutos(listaDeProdutos));
-                prodDao.executarAcoesNoBancoPrincipal();
+                // Atualiza a barra de progresso para refletir o início da importação
+                updateProgressBar(progressBarDescricao, 0, "Iniciando a importação");
+
+                // Criando um SwingWorker para realizar a importação dos produtos em uma thread separada
+                SwingWorker<Void, Integer> worker = new SwingWorker<Void, Integer>() {
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                        // Progresso inicial
+                        int progressoAtual = 0;
+
+                        // Etapa 1: Inserir produtos na tabela temporária
+                        updateProgressBar(progressBarDescricao, progressoAtual, "Inserindo produtos na tabela temporária");
+                        prodDao.InserirProdutosNaTabelaTemp(listaDeProdutos);
+                        progressoAtual += 20;
+                        publish(progressoAtual);
+
+                        // Etapa 2: Inserir novos CESTs
+                        updateProgressBar(progressBarDescricao, progressoAtual, "Inserindo os novos CESTs");
+                        prodDao.inserirNovosCESTs(obterCestComBaseNosProdutos(listaDeProdutos));
+                        progressoAtual += 20;
+                        publish(progressoAtual);
+
+                        // Etapa 3: Inserir novos NCMs
+                        updateProgressBar(progressBarDescricao, progressoAtual, "Inserindo os novos NCMs");
+                        prodDao.inserirNovosNCMs(obterNcmComBaseNosProdutos(listaDeProdutos));
+                        progressoAtual += 20;
+                        publish(progressoAtual);
+
+                        // Etapa 4: Inserir novos grupos de tributação
+                        updateProgressBar(progressBarDescricao, progressoAtual, "Criando Grupos de Tributação");
+                        prodDao.inserirNovosGruposDeTributacaoBancoPrincipal(obterGruposTributacaoComBaseNosProdutosDaEmpresa(listaDeProdutos));
+                        progressoAtual += 20;
+                        publish(progressoAtual);
+
+                        // Etapa 5: Executar ações no banco principal
+                        updateProgressBar(progressBarDescricao, progressoAtual, "Atualizando produtos no banco principal");
+                        prodDao.executarAcoesNoBancoPrincipal();
+                        progressoAtual += 20;
+                        publish(progressoAtual);
+
+                        return null;
+                    }
+
+                    @Override
+                    protected void process(List<Integer> chunks) {
+                        int progress = chunks.get(chunks.size() - 1);
+                        progressBarDescricao.setValue(progress);
+                    }
+
+                    @Override
+                    protected void done() {
+                        progressBarDescricao.setString("Concluído!");
+                        JOptionPane.showMessageDialog(null, "Produtos atualizados com sucesso!", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
+                    }
+                };
+
+                // Executa o SwingWorker
+                worker.execute();
+
+                return true; // Retorna true se a importação for iniciada com sucesso
+
             } catch (FileNotFoundException e) {
                 getLog("\n**** ATENÇÃO **** \nArquivo não encontrado: " + e.getMessage());
                 e.printStackTrace();
             } catch (IOException e) {
-                getLog("\n**** ATENÇÃO **** \n:Arquivo de entrada inválido " + e.getMessage());
+                getLog("\n**** ATENÇÃO **** \nArquivo de entrada inválido: " + e.getMessage());
                 e.printStackTrace();
             } catch (NumberFormatException e) {
-                getLog("\n**** ATENÇÃO **** \nFormato numérico invalido: " + e.getMessage());
+                getLog("\n**** ATENÇÃO **** \nFormato numérico inválido: " + e.getMessage());
+                e.printStackTrace();
+            } catch (SQLException e) {
+                getLog("\n**** ATENÇÃO **** \nErro ao atualizar banco principal de produtos: " + e.getMessage());
                 e.printStackTrace();
             } catch (IllegalStateException e) {
                 getLog("\n**** ATENÇÃO **** \nErro inesperado: " + e.getMessage());
                 e.printStackTrace();
-            } catch (SQLException e) {
-                getLog("\n**** ATENÇÃO **** \nErro na execução da Query: " + e.getMessage());
-                e.printStackTrace();
             }
         }
+        return false; // Retorna false se a importação falhar
     }
 
     private void exportarProdutosParaXls() {
@@ -314,13 +390,11 @@ public class TelaInicial extends javax.swing.JFrame {
     }
 
     private void criarTabelaTemp() {
-        BancoDadosService bd;
         boolean deletarTabelaTemp = true;
 
         try {
-            bd = new BancoDadosService(conn, deletarTabelaTemp);
-            bd.backupTabelasProdutosEGrupoTributacaoBancoPrincipal(); // Backup de segurança
-            bd.criarTabelaTributacaoTemp();
+            new BancoDadosService(conn, deletarTabelaTemp);
+
         } catch (SQLException e) {
             getLog("\n**** ATENÇÃO ****\nErro ao criar tabela temporaria dos produtos: " + e.getMessage());
             e.printStackTrace();
@@ -348,6 +422,7 @@ public class TelaInicial extends javax.swing.JFrame {
                     break;
                 }
             }
+
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(TelaInicial.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
@@ -373,6 +448,8 @@ public class TelaInicial extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblCaminhoArq;
     public static javax.swing.JLabel lblImg;
+    public static javax.swing.JProgressBar progressBarDescricao;
+    public static javax.swing.JProgressBar progressBarValor;
     private static javax.swing.JTextArea txtLogError;
     // End of variables declaration//GEN-END:variables
 }

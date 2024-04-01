@@ -8,9 +8,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import lc_tributacao.controller.conexao.exceptions.Exceptions;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import lc_tributacao.model.entities.Produto;
 import lc_tributacao.view.TelaInicial;
+import static lc_tributacao.view.TelaInicial.progressBarValor;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -38,58 +41,87 @@ public class ProdutoExportExcelService {
             return false;
         }
     }
-    
+
     public List<Produto> getListaDeProdutos() {
         return listaProduto;
     }
 
     private void criarProdutosXls(List<Produto> listaProduto, String filePath) throws IOException {
-        Workbook workbook = new HSSFWorkbook();
-        FileOutputStream fileOut = new FileOutputStream(filePath);
+        new Thread(() -> {
+            try {
+                Workbook workbook = new HSSFWorkbook();
+                Sheet sheet = workbook.createSheet("Produtos");
 
-        Sheet sheet = workbook.createSheet("Produtos");
-        int rowIdx = 0;
+                // Define o valor máximo do progresso
+                SwingUtilities.invokeLater(() -> progressBarValor.setMaximum(listaProduto.size()));
 
-        // Crie o cabeçalho da planilha
-        Row cabecalho = sheet.createRow(rowIdx++);
-        cabecalho.createCell(0).setCellValue("ID_PRODUTO");
-        cabecalho.createCell(1).setCellValue("BARRAS");
-        cabecalho.createCell(2).setCellValue("NOME");
-        cabecalho.createCell(3).setCellValue("CST");
-        cabecalho.createCell(4).setCellValue("CFOP");
-        cabecalho.createCell(5).setCellValue("NCM");
-        cabecalho.createCell(6).setCellValue("CEST");
-        cabecalho.createCell(7).setCellValue("PIS");
-        cabecalho.createCell(8).setCellValue("COFINS");
-        cabecalho.createCell(9).setCellValue("IPI");
-        cabecalho.createCell(10).setCellValue("ORIGEM");
-        cabecalho.createCell(11).setCellValue("ALIQ_PIS");
-        cabecalho.createCell(12).setCellValue("ALIQ_COFINS");
-        cabecalho.createCell(13).setCellValue("ALIQ_IPI");
-        cabecalho.createCell(14).setCellValue("ICMS_ALIQ");
-        cabecalho.createCell(15).setCellValue("ICMS_RED_BASE_CAL");
 
-        // Preencha a planilha com os dados dos produtos
-        for (Produto produto : listaProduto) {
-            Row linha = sheet.createRow(rowIdx++);
-            linha.createCell(0).setCellValue(produto.getIdProduto());
-            linha.createCell(1).setCellValue(produto.getBarras());
-            linha.createCell(2).setCellValue(produto.getNome());
-            linha.createCell(3).setCellValue(produto.getCst());
-            linha.createCell(4).setCellValue(produto.getCfop());
-            linha.createCell(5).setCellValue(produto.getNcm());
-            linha.createCell(6).setCellValue(produto.getCest());
-            linha.createCell(7).setCellValue(produto.getPis());
-            linha.createCell(8).setCellValue(produto.getCofins());
-            linha.createCell(9).setCellValue(produto.getIpi());
-            linha.createCell(10).setCellValue(produto.getOrigem());
-            linha.createCell(11).setCellValue(produto.getPisAliq());
-            linha.createCell(12).setCellValue(produto.getCofinsAliq());
-            linha.createCell(13).setCellValue(produto.getIpiAliq());
-            linha.createCell(14).setCellValue(produto.getIcmsAliq());
-            linha.createCell(15).setCellValue(produto.getIcmsAliqRedBc());
-        }
-        workbook.write(fileOut);
+                // Crie o cabeçalho da planilha
+                Row cabecalho = sheet.createRow(0);
+                cabecalho.createCell(0).setCellValue("ID_PRODUTO");
+                cabecalho.createCell(1).setCellValue("BARRAS");
+                cabecalho.createCell(2).setCellValue("NOME");
+                cabecalho.createCell(3).setCellValue("CST");
+                cabecalho.createCell(4).setCellValue("CFOP");
+                cabecalho.createCell(5).setCellValue("NCM");
+                cabecalho.createCell(6).setCellValue("CEST");
+                cabecalho.createCell(7).setCellValue("PIS");
+                cabecalho.createCell(8).setCellValue("COFINS");
+                cabecalho.createCell(9).setCellValue("IPI");
+                cabecalho.createCell(10).setCellValue("ORIGEM");
+                cabecalho.createCell(11).setCellValue("ALIQ_PIS");
+                cabecalho.createCell(12).setCellValue("ALIQ_COFINS");
+                cabecalho.createCell(13).setCellValue("ALIQ_IPI");
+                cabecalho.createCell(14).setCellValue("ICMS_ALIQ");
+                cabecalho.createCell(15).setCellValue("ICMS_RED_BASE_CAL");
+
+                // Inicie uma nova thread para atualizar a barra de progresso
+                new Thread(() -> {
+                    for (int i = 0; i < listaProduto.size(); i++) {
+                        final int progress = i + 1;
+                        SwingUtilities.invokeLater(() -> progressBarValor.setValue(progress));
+                        try {
+                            Thread.sleep(50); // Ajuste conforme necessário para a velocidade de atualização desejada
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
+                
+                // Preencha a planilha com os dados dos produtos
+                for (int i = 0; i < listaProduto.size(); i++) {
+                    Produto produto = listaProduto.get(i);
+                    Row linha = sheet.createRow(i + 1);
+
+                    // Atualiza o progresso
+                    final int progress = i + 1;
+                    SwingUtilities.invokeLater(() -> progressBarValor.setValue(progress));
+
+                    linha.createCell(0).setCellValue(produto.getIdProduto());
+                    linha.createCell(1).setCellValue(produto.getBarras());
+                    linha.createCell(2).setCellValue(produto.getNome());
+                    linha.createCell(3).setCellValue(produto.getCst());
+                    linha.createCell(4).setCellValue(produto.getCfop());
+                    linha.createCell(5).setCellValue(produto.getNcm());
+                    linha.createCell(6).setCellValue(produto.getCest());
+                    linha.createCell(7).setCellValue(produto.getPis());
+                    linha.createCell(8).setCellValue(produto.getCofins());
+                    linha.createCell(9).setCellValue(produto.getIpi());
+                    linha.createCell(10).setCellValue(produto.getOrigem());
+                    linha.createCell(11).setCellValue(produto.getPisAliq());
+                    linha.createCell(12).setCellValue(produto.getCofinsAliq());
+                    linha.createCell(13).setCellValue(produto.getIpiAliq());
+                    linha.createCell(14).setCellValue(produto.getIcmsAliq());
+                    linha.createCell(15).setCellValue(produto.getIcmsAliqRedBc());
+                }
+
+                FileOutputStream fileOut = new FileOutputStream(filePath);
+                workbook.write(fileOut);
+                fileOut.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     private List<Produto> listaProdutos() throws SQLException, IOException {

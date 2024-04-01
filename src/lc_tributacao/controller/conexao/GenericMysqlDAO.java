@@ -19,6 +19,7 @@ public class GenericMysqlDAO {
 
     final private String driver = "com.mysql.jdbc.Driver";
     private Connection conn = null;
+    public static String ip;
     public static String dataBase;
     public static String usuario;
     public static String senha;
@@ -45,6 +46,9 @@ public class GenericMysqlDAO {
 
                     String[] split = linha.split(":");
 
+                    if (split[0].equalsIgnoreCase("IP")) {
+                        ip = (linha.split(":")[1]);
+                    }
                     if (split[0].equalsIgnoreCase("DB")) {
                         dataBase = (linha.split(":")[1]);
                     }
@@ -71,13 +75,14 @@ public class GenericMysqlDAO {
 
     private void abrirConexao() throws ClassNotFoundException, SQLException {
         try {
-            String url = "jdbc:mysql://localhost:" + porta + "/" + dataBase + "?useUnicode=true&characterEncoding=UTF-8";
+            String url = "jdbc:mysql://" + ip + ":" + porta + "/" + dataBase + "?useUnicode=true&characterEncoding=UTF-8";
             Class.forName(driver);
             conn = DriverManager.getConnection(url, usuario, senha);
             System.out.println("Conexao Mysql efetuada com sucesso!");
         } catch (ClassNotFoundException | SQLException ex) {
             ex.getMessage();
             JOptionPane.showMessageDialog(null, "\nNão Foi Possivel Conctar ao Servidor\nVerifique a Conexão com o banco de dados\n\n\n" + ex.getMessage(), "Error", JOptionPane.WARNING_MESSAGE);
+
             System.exit(0);
         }
     }

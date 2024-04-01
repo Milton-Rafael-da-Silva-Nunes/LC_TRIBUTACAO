@@ -17,14 +17,16 @@ public class BancoDadosService {
 
     private Connection conn = null;
 
-    public BancoDadosService(Connection conn, boolean podeDeletarTabelaTemp) throws SQLException {
+    public BancoDadosService(Connection conn, boolean podeDeletarTabelaTemp) throws SQLException, IOException, InterruptedException {
         this.conn = conn;
         if (podeDeletarTabelaTemp) {
             deletarTabelaTributacaoTemp();
-        }
+            criarTabelaTributacaoTemp();
+            backupTabelasProdutosEGrupoTributacaoBancoPrincipal();
+        } 
     }
 
-    public void criarTabelaTributacaoTemp() throws SQLException {
+    private void criarTabelaTributacaoTemp() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement("CREATE TABLE `tributacaoTemp` (\n"
                 + "  `id_produto` INTEGER(11),\n"
                 + "  `barras` VARCHAR(30),\n"
@@ -49,32 +51,27 @@ public class BancoDadosService {
                 + "ENGINE = InnoDB;")) {
 
             pstm.executeUpdate();
-
         }
     }
 
-    public void backupTabelasProdutosEGrupoTributacaoBancoPrincipal() throws IOException, InterruptedException {
+    private void backupTabelasProdutosEGrupoTributacaoBancoPrincipal() throws IOException, InterruptedException {
         String comando = String.format("mysqldump --host=localhost --user=" + usuario + " --password=" + senha + " " + dataBase + " produto grupotributacao > produtoEgrupotributacao.sql");
 
-        try {
-            ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", comando);
-            processBuilder.redirectErrorStream(true);
-            Process process = processBuilder.start();
+        ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", comando);
+        processBuilder.redirectErrorStream(true);
+        Process process = processBuilder.start();
 
-            int exitCode = process.waitFor();
+        int exitCode = process.waitFor();
 
-            if (exitCode == 0) {
-                TelaInicial.getLog("\n**** BACKUP ****\nCaminho: C:\\LC sistemas - Softhouse\\produtoEgrupotributacao.sql");
-                System.out.println("Backup criado com sucesso.");
-            } else {
-                TelaInicial.getLog("**** Erro ao criar o backup ****");
-            }
-        } finally {
-            // FINALIZAR CODIGO
+        if (exitCode == 0) {
+            TelaInicial.getLog("\n**** BACKUP ****\nCaminho: C:\\LC sistemas - Softhouse\\produtoEgrupotributacao.sql");
+            System.out.println("Backup criado com sucesso.");
+        } else {
+            TelaInicial.getLog("**** Erro ao criar o backup ****");
         }
     }
 
-    public void deletarTabelaTributacaoTemp() throws SQLException {
+    private void deletarTabelaTributacaoTemp() throws SQLException {
         try (PreparedStatement pstm = conn.prepareStatement("DROP TABLE IF EXISTS `tributacaoTemp`;")) {
             pstm.executeUpdate();
         }
