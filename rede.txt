@@ -1,7 +1,7 @@
-IP:192.168.1.217
-DB:lc_sistemas_sintegra
+IP:localhost
+DB:lc_sistemas
 USER:root
-KEY:123456
+KEY:03310103
 PORT:3306
 TERMINAL_TIPO:SRV
 ID_EMPRESA_PADRAO:1

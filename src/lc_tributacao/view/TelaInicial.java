@@ -9,10 +9,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.SwingWorker;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.JProgressBar;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import lc_tributacao.controller.conexao.GenericMysqlDAO;
 import static lc_tributacao.controller.conexao.GenericMysqlDAO.dataBase;
@@ -29,7 +27,6 @@ import lc_tributacao.model.entities.Empresa;
 import lc_tributacao.model.entities.GrupoTributacao;
 import lc_tributacao.model.entities.Ncm;
 import lc_tributacao.model.entities.Produto;
-import static lc_tributacao.util.BarrasDeProgresso.updateProgressBar;
 import static lc_tributacao.util.LogoPrincipal.getLogoPrincipal;
 import static lc_tributacao.util.Versao.getVersaoPrograma;
 
@@ -213,7 +210,7 @@ public class TelaInicial extends javax.swing.JFrame {
 
         if (chamarTelaImportar()) {
             criarTabelaTemp();
-            if (importarProdutosDoExcel(progressBarDescricao)) {
+            if (importarProdutosDoExcel()) {
                 System.out.println("Fazendo importação");
             }
         }
@@ -263,71 +260,18 @@ public class TelaInicial extends javax.swing.JFrame {
         }
     }
 
-    private boolean importarProdutosDoExcel(JProgressBar progressBarDescricao) {
+    private boolean importarProdutosDoExcel() {
         if (!filePath.isEmpty()) {
             try {
                 ProdutoDao prodDao = new ProdutoDao(conn);
                 ProdutoImportExcelService prodServic = new ProdutoImportExcelService();
                 List<Produto> listaDeProdutos = prodServic.getProdutosDoArquivoExcel(filePath);
 
-                // Atualiza a barra de progresso para refletir o início da importação
-                updateProgressBar(progressBarDescricao, 0, "Iniciando a importação");
-
-                // Criando um SwingWorker para realizar a importação dos produtos em uma thread separada
-                SwingWorker<Void, Integer> worker = new SwingWorker<Void, Integer>() {
-                    @Override
-                    protected Void doInBackground() throws Exception {
-                        // Progresso inicial
-                        int progressoAtual = 0;
-
-                        // Etapa 1: Inserir produtos na tabela temporária
-                        updateProgressBar(progressBarDescricao, progressoAtual, "Inserindo produtos na tabela temporária");
-                        prodDao.InserirProdutosNaTabelaTemp(listaDeProdutos);
-                        progressoAtual += 20;
-                        publish(progressoAtual);
-
-                        // Etapa 2: Inserir novos CESTs
-                        updateProgressBar(progressBarDescricao, progressoAtual, "Inserindo os novos CESTs");
-                        prodDao.inserirNovosCESTs(obterCestComBaseNosProdutos(listaDeProdutos));
-                        progressoAtual += 20;
-                        publish(progressoAtual);
-
-                        // Etapa 3: Inserir novos NCMs
-                        updateProgressBar(progressBarDescricao, progressoAtual, "Inserindo os novos NCMs");
-                        prodDao.inserirNovosNCMs(obterNcmComBaseNosProdutos(listaDeProdutos));
-                        progressoAtual += 20;
-                        publish(progressoAtual);
-
-                        // Etapa 4: Inserir novos grupos de tributação
-                        updateProgressBar(progressBarDescricao, progressoAtual, "Criando Grupos de Tributação");
-                        prodDao.inserirNovosGruposDeTributacaoBancoPrincipal(obterGruposTributacaoComBaseNosProdutosDaEmpresa(listaDeProdutos));
-                        progressoAtual += 20;
-                        publish(progressoAtual);
-
-                        // Etapa 5: Executar ações no banco principal
-                        updateProgressBar(progressBarDescricao, progressoAtual, "Atualizando produtos no banco principal");
-                        prodDao.executarAcoesNoBancoPrincipal();
-                        progressoAtual += 20;
-                        publish(progressoAtual);
-
-                        return null;
-                    }
-
-                    @Override
-                    protected void process(List<Integer> chunks) {
-                        int progress = chunks.get(chunks.size() - 1);
-                        progressBarDescricao.setValue(progress);
-                    }
-
-                    @Override
-                    protected void done() {
-                        progressBarDescricao.setString("Concluído!");
-                        JOptionPane.showMessageDialog(null, "Produtos atualizados com sucesso!", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
-                    }
-                };
-
-                // Executa o SwingWorker
-                worker.execute();
+                prodDao.InserirProdutosNaTabelaTemp(listaDeProdutos);
+                prodDao.inserirNovosCESTs(obterCestComBaseNosProdutos(listaDeProdutos));
+                prodDao.inserirNovosNCMs(obterNcmComBaseNosProdutos(listaDeProdutos));
+                prodDao.inserirNovosGruposDeTributacaoBancoPrincipal(obterGruposTributacaoComBaseNosProdutosDaEmpresa(listaDeProdutos));
+                prodDao.executarAcoesNoBancoPrincipal();
 
                 return true; // Retorna true se a importação for iniciada com sucesso
 
@@ -354,14 +298,7 @@ public class TelaInicial extends javax.swing.JFrame {
     private void exportarProdutosParaXls() {
         try {
             ProdutoExportExcelService prodExportService = new ProdutoExportExcelService(conn);
-            List<Produto> listaProdutos = prodExportService.getListaDeProdutos();
-
-            if (!listaProdutos.isEmpty()) {
-                prodExportService.gerarProdutosXls(filePath);
-                JOptionPane.showMessageDialog(null, "Tabela exportada com sucesso! \n\n<html><b>Caminho:</b> " + filePath + "\\CLASSIFICAO DE TRIBUTOS.xls</html>", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                getLog("**** ATENÇÃO ****\nNenhum produto encontrado na base '" + dataBase + "'");
-            }
+            prodExportService.gerarProdutosXls(filePath);
 
         } catch (SQLException e) {
             getLog("\n**** ATENÇÃO ****\n Erro na Query de consulta: " + e.getMessage());

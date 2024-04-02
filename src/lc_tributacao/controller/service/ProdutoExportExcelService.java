@@ -8,11 +8,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import static lc_tributacao.controller.conexao.GenericMysqlDAO.dataBase;
 import lc_tributacao.model.entities.Produto;
-import lc_tributacao.view.TelaInicial;
+import static lc_tributacao.util.Versao.getVersaoPrograma;
+import static lc_tributacao.view.TelaInicial.getLog;
 import static lc_tributacao.view.TelaInicial.progressBarValor;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
@@ -26,105 +29,89 @@ import org.apache.poi.ss.usermodel.Workbook;
 public class ProdutoExportExcelService {
 
     private Connection conn = null;
-    List<Produto> listaProduto = new ArrayList<>();
+    private List<Produto> listaProdutos = new ArrayList<>();
 
     public ProdutoExportExcelService(Connection conn) throws SQLException, IOException {
         this.conn = conn;
-        listaProdutos();
+        getListaDeProdutos();
     }
 
     public Boolean gerarProdutosXls(String filePath) throws IOException, SQLException {
-        if (listaProduto.size() > 0) {
-            criarProdutosXls(listaProduto, filePath + "\\CLASSIFICAO DE TRIBUTOS.xls");
+        if (listaProdutos.size() > 0) {
+            progresso(filePath);
             return true;
         } else {
+            getLog("**** ATENÇÃO ****\nNenhum produto encontrado na base: '" + dataBase + "'");
             return false;
         }
     }
 
-    public List<Produto> getListaDeProdutos() {
-        return listaProduto;
-    }
+    private void criarProdutosXls(String filePath) throws IOException, SQLException {
+        Workbook workbook = null;
+        FileOutputStream fileOut = null;
 
-    private void criarProdutosXls(List<Produto> listaProduto, String filePath) throws IOException {
-        new Thread(() -> {
-            try {
-                Workbook workbook = new HSSFWorkbook();
-                Sheet sheet = workbook.createSheet("Produtos");
+        try {
+            workbook = new HSSFWorkbook();
+            fileOut = new FileOutputStream(filePath);
+            Sheet sheet = workbook.createSheet("Produtos");
 
-                // Define o valor máximo do progresso
-                SwingUtilities.invokeLater(() -> progressBarValor.setMaximum(listaProduto.size()));
+            int linhas = listaProdutos.size();
+            progressBarValor.setMaximum(linhas);
 
+            // Crie o cabeçalho da planilha
+            Row cabecalho = sheet.createRow(0);
+            cabecalho.createCell(0).setCellValue("ID_PRODUTO");
+            cabecalho.createCell(1).setCellValue("BARRAS");
+            cabecalho.createCell(2).setCellValue("NOME");
+            cabecalho.createCell(3).setCellValue("CST");
+            cabecalho.createCell(4).setCellValue("CFOP");
+            cabecalho.createCell(5).setCellValue("NCM");
+            cabecalho.createCell(6).setCellValue("CEST");
+            cabecalho.createCell(7).setCellValue("PIS");
+            cabecalho.createCell(8).setCellValue("COFINS");
+            cabecalho.createCell(9).setCellValue("IPI");
+            cabecalho.createCell(10).setCellValue("ORIGEM");
+            cabecalho.createCell(11).setCellValue("ALIQ_PIS");
+            cabecalho.createCell(12).setCellValue("ALIQ_COFINS");
+            cabecalho.createCell(13).setCellValue("ALIQ_IPI");
+            cabecalho.createCell(14).setCellValue("ICMS_ALIQ");
 
-                // Crie o cabeçalho da planilha
-                Row cabecalho = sheet.createRow(0);
-                cabecalho.createCell(0).setCellValue("ID_PRODUTO");
-                cabecalho.createCell(1).setCellValue("BARRAS");
-                cabecalho.createCell(2).setCellValue("NOME");
-                cabecalho.createCell(3).setCellValue("CST");
-                cabecalho.createCell(4).setCellValue("CFOP");
-                cabecalho.createCell(5).setCellValue("NCM");
-                cabecalho.createCell(6).setCellValue("CEST");
-                cabecalho.createCell(7).setCellValue("PIS");
-                cabecalho.createCell(8).setCellValue("COFINS");
-                cabecalho.createCell(9).setCellValue("IPI");
-                cabecalho.createCell(10).setCellValue("ORIGEM");
-                cabecalho.createCell(11).setCellValue("ALIQ_PIS");
-                cabecalho.createCell(12).setCellValue("ALIQ_COFINS");
-                cabecalho.createCell(13).setCellValue("ALIQ_IPI");
-                cabecalho.createCell(14).setCellValue("ICMS_ALIQ");
-                cabecalho.createCell(15).setCellValue("ICMS_RED_BASE_CAL");
+            for (int i = 0; i < linhas; i++) {
+                final int progressoAtual = i + 1;
+                SwingUtilities.invokeLater(() -> progressBarValor.setValue(progressoAtual));
 
-                // Inicie uma nova thread para atualizar a barra de progresso
-                new Thread(() -> {
-                    for (int i = 0; i < listaProduto.size(); i++) {
-                        final int progress = i + 1;
-                        SwingUtilities.invokeLater(() -> progressBarValor.setValue(progress));
-                        try {
-                            Thread.sleep(50); // Ajuste conforme necessário para a velocidade de atualização desejada
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }).start();
-                
-                // Preencha a planilha com os dados dos produtos
-                for (int i = 0; i < listaProduto.size(); i++) {
-                    Produto produto = listaProduto.get(i);
-                    Row linha = sheet.createRow(i + 1);
-
-                    // Atualiza o progresso
-                    final int progress = i + 1;
-                    SwingUtilities.invokeLater(() -> progressBarValor.setValue(progress));
-
-                    linha.createCell(0).setCellValue(produto.getIdProduto());
-                    linha.createCell(1).setCellValue(produto.getBarras());
-                    linha.createCell(2).setCellValue(produto.getNome());
-                    linha.createCell(3).setCellValue(produto.getCst());
-                    linha.createCell(4).setCellValue(produto.getCfop());
-                    linha.createCell(5).setCellValue(produto.getNcm());
-                    linha.createCell(6).setCellValue(produto.getCest());
-                    linha.createCell(7).setCellValue(produto.getPis());
-                    linha.createCell(8).setCellValue(produto.getCofins());
-                    linha.createCell(9).setCellValue(produto.getIpi());
-                    linha.createCell(10).setCellValue(produto.getOrigem());
-                    linha.createCell(11).setCellValue(produto.getPisAliq());
-                    linha.createCell(12).setCellValue(produto.getCofinsAliq());
-                    linha.createCell(13).setCellValue(produto.getIpiAliq());
-                    linha.createCell(14).setCellValue(produto.getIcmsAliq());
-                    linha.createCell(15).setCellValue(produto.getIcmsAliqRedBc());
-                }
-
-                FileOutputStream fileOut = new FileOutputStream(filePath);
-                workbook.write(fileOut);
-                fileOut.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+                Produto produto = listaProdutos.get(i);
+                Row linha = sheet.createRow(i + 1);
+                linha.createCell(0).setCellValue(produto.getIdProduto());
+                linha.createCell(1).setCellValue(produto.getBarras());
+                linha.createCell(2).setCellValue(produto.getNome());
+                linha.createCell(3).setCellValue(produto.getCst());
+                linha.createCell(4).setCellValue(produto.getCfop());
+                linha.createCell(5).setCellValue(produto.getNcm());
+                linha.createCell(6).setCellValue(produto.getCest());
+                linha.createCell(7).setCellValue(produto.getPis());
+                linha.createCell(8).setCellValue(produto.getCofins());
+                linha.createCell(9).setCellValue(produto.getIpi());
+                linha.createCell(10).setCellValue(produto.getOrigem());
+                linha.createCell(11).setCellValue(produto.getPisAliq());
+                linha.createCell(12).setCellValue(produto.getCofinsAliq());
+                linha.createCell(13).setCellValue(produto.getIpiAliq());
+                linha.createCell(14).setCellValue(produto.getIcmsAliq());
+                linha.createCell(15).setCellValue(produto.getIcmsAliqRedBc());
+                System.out.println("Produtos escritos --> " + produto);
             }
-        }).start();
+
+            workbook.write(fileOut);
+            JOptionPane.showMessageDialog(null, "Tabela exportada com sucesso! \n\n<html><b>Caminho:</b> " + filePath + "\\CLASSIFICAO DE TRIBUTOS.xls</html>", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
+            getLog("\n**** RESULTADO EXPORTAÇÃO ****\nQuantidade de produtos: " + listaProdutos.size());
+
+        } finally {
+            fileOut.close();
+            workbook.close();
+        }
     }
 
-    private List<Produto> listaProdutos() throws SQLException, IOException {
+    private List<Produto> getListaDeProdutos() throws SQLException {
         PreparedStatement pstm = conn.prepareStatement("SELECT\n"
                 + "P.id as ID_PRODUTO,\n"
                 + "P.codigo_barras as BARRAS,\n"
@@ -170,12 +157,26 @@ public class ProdutoExportExcelService {
             prod.setIpiAliq(rs.getDouble("ALIQ_IPI"));
             prod.setIcmsAliq(rs.getDouble("ICMS_ALIQ"));
             prod.setIcmsAliqRedBc(rs.getDouble("ICMS_RED_BASE_CALC"));
-            listaProduto.add(prod);
-            System.out.println("Produtos do BD --> " + prod);
+            listaProdutos.add(prod);
         }
-        if (listaProduto.size() > 0) {
-            TelaInicial.getLog("\n**** RESULTADO EXPORTAÇÃO ****\nQuantidade de produtos: " + listaProduto.size());
-        }
-        return listaProduto;
+        
+        return listaProdutos;
+    }
+
+    public void progresso(String filePath) {
+        ExecutorService d = Executors.newFixedThreadPool(1);
+        d.execute(new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    criarProdutosXls(filePath + "\\CLASSIFICAO DE TRIBUTOS.xls");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.exit(0);
+                }
+            }
+        });
+        d.shutdown();
     }
 }
