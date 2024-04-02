@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 import static lc_tributacao.controller.conexao.GenericMysqlDAO.dataBase;
 import lc_tributacao.model.entities.Produto;
 import static lc_tributacao.util.Versao.getVersaoPrograma;
@@ -77,9 +76,7 @@ public class ProdutoExportExcelService {
             cabecalho.createCell(14).setCellValue("ICMS_ALIQ");
 
             for (int i = 0; i < linhas; i++) {
-                final int progressoAtual = i + 1;
-                SwingUtilities.invokeLater(() -> progressBarValor.setValue(progressoAtual));
-
+                progressBarValor.setValue(i + 1);
                 Produto produto = listaProdutos.get(i);
                 Row linha = sheet.createRow(i + 1);
                 linha.createCell(0).setCellValue(produto.getIdProduto());
@@ -159,7 +156,7 @@ public class ProdutoExportExcelService {
             prod.setIcmsAliqRedBc(rs.getDouble("ICMS_RED_BASE_CALC"));
             listaProdutos.add(prod);
         }
-        
+
         return listaProdutos;
     }
 
