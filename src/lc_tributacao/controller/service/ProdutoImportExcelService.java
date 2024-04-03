@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import lc_tributacao.controller.conexao.exceptions.Exceptions;
 import lc_tributacao.model.entities.Produto;
 import lc_tributacao.view.TelaInicial;
 import org.apache.poi.ss.usermodel.Row;
@@ -18,43 +17,49 @@ import org.apache.poi.ss.usermodel.*;
  * @author Rafael Nunes
  */
 public class ProdutoImportExcelService {
-
-    public List<Produto> getProdutosDoArquivoExcel(String path) throws IOException, FileNotFoundException, NumberFormatException, IllegalStateException {
-        return listaProdutos(path);
+    
+    private final String path;
+    
+    public ProdutoImportExcelService(String path) throws IOException {
+        this.path = path;
     }
-
-    private List<Produto> listaProdutos(String filePath) throws IOException, FileNotFoundException, NumberFormatException, IllegalStateException {
+    
+    public List<Produto> getProdutosDoArquivoExcel() throws IOException, FileNotFoundException, NumberFormatException, IllegalStateException {
+        return listaProdutos();
+    }
+    
+    private List<Produto> listaProdutos() throws IOException, FileNotFoundException, NumberFormatException, IllegalStateException {
         List<Produto> produtos = new ArrayList<>();
-        List<Produto> produtosValidos = new ArrayList<>();
-
-        HSSFWorkbook workbook = lerArquivo(filePath);
+        
+        HSSFWorkbook workbook = lerArquivo(path);
         Sheet sheet = workbook.getSheetAt(0); // Primeira planilha
 
         Iterator<Row> rowIterator = sheet.iterator();
+
         while (rowIterator.hasNext()) {
+            
             Row row = rowIterator.next();
             if (row.getRowNum() == 0) { // Pula o cabeçalho da planilha
                 continue;
             }
+            
             Produto produto = parseLinha(row);
             produtos.add(produto);
         }
-
-        produtosValidos = validarObjetoProdutos(produtos);
-
-        TelaInicial.getLog("\n**** LOG ****\nProdutos na planilha: " + produtosValidos.size());
-
-        return produtosValidos; // Só retorna OBJETO validos
+        
+        TelaInicial.getLog("\n**** LOG ****\nProdutos na planilha: " + produtos.size());
+        
+        return produtos;
     }
-
+    
     private HSSFWorkbook lerArquivo(String filePath) throws IOException {
         FileInputStream inputStream = new FileInputStream(filePath);
         return new HSSFWorkbook(inputStream, true);
     }
-
+    
     private Produto parseLinha(Row row) {
         Produto produto = new Produto();
-
+        
         Cell idProdutoCell = row.getCell(0);
         Cell barrasCell = row.getCell(1);
         Cell nomeCell = row.getCell(2);
@@ -71,28 +76,28 @@ public class ProdutoImportExcelService {
         Cell ipiAliqCell = row.getCell(13);
         Cell icmsAliqCell = row.getCell(14);
         Cell icmsAliqRedBcCell = row.getCell(15);
-
+        
         if (idProdutoCell != null) {
             idProdutoCell.setCellType(CellType.STRING);
             produto.setIdProduto(returnIntegerValue(idProdutoCell));
         } else {
             produto.setIdProduto(0);
         }
-
+        
         if (barrasCell != null) {
             barrasCell.setCellType(CellType.STRING);
             produto.setBarras(barrasCell.getStringCellValue());
         } else {
             produto.setBarras("");
         }
-
+        
         if (nomeCell != null) {
             nomeCell.setCellType(CellType.STRING);
             produto.setNome(nomeCell.getStringCellValue());
         } else {
             produto.setNome("");
         }
-
+        
         if (cstCell != null) {
             cstCell.setCellType(CellType.STRING);
             String cst = cstCell.getStringCellValue();
@@ -100,14 +105,14 @@ public class ProdutoImportExcelService {
         } else {
             produto.setCst("");
         }
-
+        
         if (cfopCell != null) {
             cfopCell.setCellType(CellType.STRING);
             produto.setCfop(cfopCell.getStringCellValue());
         } else {
             produto.setCfop("");
         }
-
+        
         if (ncmCell != null) {
             ncmCell.setCellType(CellType.STRING);
             String ncm = ncmCell.getStringCellValue();
@@ -115,7 +120,7 @@ public class ProdutoImportExcelService {
         } else {
             produto.setNcm("");
         }
-
+        
         if (cestCell != null) {
             cestCell.setCellType(CellType.STRING);
             String cest = cestCell.getStringCellValue();
@@ -123,35 +128,35 @@ public class ProdutoImportExcelService {
         } else {
             produto.setCest("");
         }
-
+        
         if (pisCell != null) {
             pisCell.setCellType(CellType.STRING);
             produto.setPis(getPisCofinsIpiFormatado(pisCell.getStringCellValue()));
         } else {
             produto.setPis("07");
         }
-
+        
         if (cofinsCell != null) {
             cofinsCell.setCellType(CellType.STRING);
             produto.setCofins(getPisCofinsIpiFormatado(cofinsCell.getStringCellValue()));
         } else {
             produto.setCofins("07");
         }
-
+        
         if (ipiCell != null) {
             ipiCell.setCellType(CellType.STRING);
             produto.setIpi(getPisCofinsIpiFormatado(ipiCell.getStringCellValue()));
         } else {
             produto.setIpi("");
         }
-
+        
         if (origemCell != null) {
             origemCell.setCellType(CellType.STRING);
             produto.setOrigem(origemCell.getStringCellValue());
         } else {
             produto.setOrigem("0");
         }
-
+        
         if (ncmCell != null) {
             ncmCell.setCellType(CellType.STRING);
             String genero = getNcmFormatado(ncmCell.getStringCellValue());
@@ -159,40 +164,40 @@ public class ProdutoImportExcelService {
         } else {
             produto.setGenero("");
         }
-
+        
         if (pisAliqCell != null) {
             produto.setPisAliq(returnDoubleValue(pisAliqCell));
         } else {
             produto.setPisAliq(0.0);
         }
-
+        
         if (cofinsAliqCell != null) {
             produto.setCofinsAliq(returnDoubleValue(cofinsAliqCell));
         } else {
             produto.setCofinsAliq(0.0);
         }
-
+        
         if (ipiAliqCell != null) {
             produto.setIpiAliq(returnDoubleValue(ipiAliqCell));
         } else {
             produto.setIpiAliq(0.0);
         }
-
+        
         if (icmsAliqCell != null) {
             produto.setIcmsAliq(returnDoubleValue(icmsAliqCell));
         } else {
             produto.setIcmsAliq(0.0);
         }
-
+        
         if (icmsAliqRedBcCell != null) {
             produto.setIcmsAliqRedBc(returnDoubleValue(icmsAliqRedBcCell));
         } else {
             produto.setIcmsAliqRedBc(0.0);
         }
-
+        
         return produto;
     }
-
+    
     private Integer returnIntegerValue(Cell integerValueCell) {
         int integerValue = 0;
         if (integerValueCell.getCellType() == CellType.STRING) {
@@ -202,29 +207,29 @@ public class ProdutoImportExcelService {
         }
         return integerValue;
     }
-
+    
     private Double returnDoubleValue(Cell doubleValueCell) {
         if (doubleValueCell == null) {
             return null;
         }
-
+        
         String cellValue = "";
         if (doubleValueCell.getCellType() == CellType.STRING) {
             cellValue = doubleValueCell.getStringCellValue().trim();
-
+            
             if (cellValue.contains(",") && cellValue.contains(".")) {
                 cellValue = cellValue.replace(".", "").replace(",", ".");
             } else if (cellValue.contains(",")) {
                 cellValue = cellValue.replace(",", ".");
             }
-
+            
         } else if (doubleValueCell.getCellType() == CellType.NUMERIC) {
             cellValue = String.valueOf(doubleValueCell.getNumericCellValue());
         }
-
+        
         return Double.parseDouble(cellValue);
     }
-
+    
     private String getNcmFormatado(String ncm) {
         String ncmValue;
         switch (ncm.trim().length()) {
@@ -240,7 +245,7 @@ public class ProdutoImportExcelService {
         }
         return ncmValue;
     }
-
+    
     private String getCestFormatado(String cest) {
         String cestValue;
         switch (cest.trim().length()) {
@@ -256,7 +261,7 @@ public class ProdutoImportExcelService {
         }
         return cestValue;
     }
-
+    
     private String getCstFormatado(String cst) {
         String cstValue;
         switch (cst.trim().length()) {
@@ -269,7 +274,7 @@ public class ProdutoImportExcelService {
         }
         return cstValue;
     }
-
+    
     private String getPisCofinsIpiFormatado(String pisCofinsIpi) {
         String pisCofinsIpiValue;
         switch (pisCofinsIpi.trim().length()) {
@@ -281,26 +286,5 @@ public class ProdutoImportExcelService {
                 break;
         }
         return pisCofinsIpiValue;
-    }
-
-    private List<Produto> validarObjetoProdutos(List<Produto> listaProdutos) {
-        List<Produto> produtosValidados = new ArrayList<>();
-        boolean produtosInvalidosEncontrados = false;
-
-        for (Produto produto : listaProdutos) {
-
-            if (produto == null || produto.getIdProduto() == 0) {
-                if (!produtosInvalidosEncontrados) {
-                    TelaInicial.getLog("\n******** PRODUTOS INVALIDOS ********");
-                    produtosInvalidosEncontrados = true;
-                }
-                TelaInicial.getLog("--> " + produto);
-            } else {
-                produtosValidados.add(produto);
-                System.out.println("Produtos --> " + produto);
-            }
-        }
-
-        return produtosValidados;
     }
 }

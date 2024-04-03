@@ -28,7 +28,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 public class ProdutoExportExcelService {
 
     private Connection conn = null;
-    private List<Produto> listaProdutos = new ArrayList<>();
+    private final List<Produto> listaProdutos = new ArrayList<>();
 
     public ProdutoExportExcelService(Connection conn) throws SQLException, IOException {
         this.conn = conn;

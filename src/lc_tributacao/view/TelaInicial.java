@@ -13,7 +13,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import lc_tributacao.controller.conexao.GenericMysqlDAO;
-import static lc_tributacao.controller.conexao.GenericMysqlDAO.dataBase;
 import lc_tributacao.model.dao.ProdutoDao;
 import lc_tributacao.controller.service.BancoDadosService;
 import lc_tributacao.controller.service.ProdutoExportExcelService;
@@ -36,9 +35,8 @@ import static lc_tributacao.util.Versao.getVersaoPrograma;
  */
 public class TelaInicial extends javax.swing.JFrame {
 
-    String filePath = "";
-    Connection conn = new GenericMysqlDAO().getConnection();
-    String descricaoBarraDeProgresso;
+    private String filePath = "";
+    private final Connection conn = new GenericMysqlDAO().getConnection();
 
     public TelaInicial() throws Exception {
         initComponents();
@@ -206,12 +204,10 @@ public class TelaInicial extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnImportarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImportarActionPerformed
-        getLog("Carregando...");
-
         if (chamarTelaImportar()) {
             criarTabelaTemp();
-            if (importarProdutosDoExcel()) {
-                System.out.println("Fazendo importação");
+            if(importarProdutosDoExcel()) {
+               System.out.println("Produtos do Excel importados"); 
             }
         }
     }//GEN-LAST:event_btnImportarActionPerformed
@@ -264,16 +260,12 @@ public class TelaInicial extends javax.swing.JFrame {
         if (!filePath.isEmpty()) {
             try {
                 ProdutoDao prodDao = new ProdutoDao(conn);
-                ProdutoImportExcelService prodServic = new ProdutoImportExcelService();
-                List<Produto> listaDeProdutos = prodServic.getProdutosDoArquivoExcel(filePath);
+                ProdutoImportExcelService prodServic = new ProdutoImportExcelService(filePath);
+                List<Produto> listaDeProdutos = prodServic.getProdutosDoArquivoExcel();
 
-                prodDao.InserirProdutosNaTabelaTemp(listaDeProdutos);
-                prodDao.inserirNovosCESTs(obterCestComBaseNosProdutos(listaDeProdutos));
-                prodDao.inserirNovosNCMs(obterNcmComBaseNosProdutos(listaDeProdutos));
-                prodDao.inserirNovosGruposDeTributacaoBancoPrincipal(obterGruposTributacaoComBaseNosProdutosDaEmpresa(listaDeProdutos));
-                prodDao.executarAcoesNoBancoPrincipal();
+                prodDao.iniciarProcesso(listaDeProdutos, obterCestComBaseNosProdutos(listaDeProdutos), obterNcmComBaseNosProdutos(listaDeProdutos), obterGruposTributacaoComBaseNosProdutosDaEmpresa(listaDeProdutos));
 
-                return true; // Retorna true se a importação for iniciada com sucesso
+                return true;
 
             } catch (FileNotFoundException e) {
                 getLog("\n**** ATENÇÃO **** \nArquivo não encontrado: " + e.getMessage());
@@ -292,7 +284,8 @@ public class TelaInicial extends javax.swing.JFrame {
                 e.printStackTrace();
             }
         }
-        return false; // Retorna false se a importação falhar
+
+        return false;
     }
 
     private void exportarProdutosParaXls() {

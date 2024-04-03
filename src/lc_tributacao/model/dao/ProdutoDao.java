@@ -7,6 +7,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import javax.swing.JOptionPane;
 import lc_tributacao.controller.conexao.exceptions.Exceptions;
 import lc_tributacao.model.entities.Cest;
 import lc_tributacao.model.entities.GrupoTributacao;
@@ -14,6 +17,10 @@ import lc_tributacao.model.entities.Ncm;
 import lc_tributacao.model.entities.Produto;
 import lc_tributacao.util.DataHora;
 import lc_tributacao.view.TelaInicial;
+import static lc_tributacao.view.TelaInicial.getLog;
+import static lc_tributacao.util.Versao.getVersaoPrograma;
+import static lc_tributacao.view.TelaInicial.progressBarDescricao;
+import static lc_tributacao.view.TelaInicial.progressBarValor;
 
 /**
  *
@@ -31,12 +38,35 @@ public class ProdutoDao {
     private final List<Integer> listaCest = new ArrayList<>();
     private final List<Integer> listaNcm = new ArrayList<>();
 
-    public void executarAcoesNoBancoPrincipal() throws SQLException {
-        TelaInicial.getLog("\n**** RESULTADO ****\n-> Inseridos");
+    public void iniciarProcesso(List<Produto> listaProdutos, List<Cest> listaCests, List<Ncm> listaDeNcms, List<GrupoTributacao> listaGrupos) {
+        ExecutorService d = Executors.newFixedThreadPool(1);
+        d.execute(new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    InserirProdutosNaTabelaTemp(listaProdutos);
+                    inserirNovosCESTs(listaCests);
+                    inserirNovosNCMs(listaDeNcms);
+                    inserirNovosGruposDeTributacaoBancoPrincipal(listaGrupos);
+                    executarAcoesNoBancoPrincipal();
+                    JOptionPane.showMessageDialog(null, "<html><b>Produtos atualizados com sucesso</b>!", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.exit(0);
+                }
+            }
+        });
+        d.shutdown();
+    }
+
+    private void executarAcoesNoBancoPrincipal() throws SQLException {
+        progressBarDescricao.setString("Atualizando produtos na base principal");
+        getLog("\n**** RESULTADO ****\n-> Inseridos");
         ncmsInseridos();
         cestsInseridos();
         gruposDeTributacaoInseridos();
-        TelaInicial.getLog("-> Atualizados");
+        getLog("-> Atualizados");
         updateProdutosIdNCM();
         updateProdutosIdCEST();
         updateProdutosIdCST();
@@ -49,7 +79,13 @@ public class ProdutoDao {
         updateProdutosIdGrupoTributacao();
     }
 
-    public void InserirProdutosNaTabelaTemp(List<Produto> listaProdutos) throws SQLException {
+    private void InserirProdutosNaTabelaTemp(List<Produto> listaProdutos) throws SQLException {
+        progressBarDescricao.setValue(20);
+        progressBarDescricao.setString("Importando produtos");
+
+        int totalProdutos = listaProdutos.size();
+        int progresso = 0;
+
         try (PreparedStatement pstm = conn.prepareStatement("INSERT INTO tributacaotemp(id_produto, barras, nome, cst, cfop, ncm, cest, pis, cofins, ipi, origem, genero, pis_aliq, cofins_aliq, ipi_aliq, icms_aliq, icms_aliq_red_bc, data_hora) "
                 + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 
@@ -73,11 +109,21 @@ public class ProdutoDao {
                 pstm.setDouble(17, produto.getIcmsAliqRedBc());
                 pstm.setString(18, DataHora.getDataHoraAtual());
                 pstm.executeUpdate();
+
+                // Atualiza a barra de progresso de valor
+                progresso++;
+                progressBarValor.setValue((int) Math.round((double) progresso / totalProdutos * 100));
             }
         }
     }
 
-    public void inserirNovosGruposDeTributacaoBancoPrincipal(List<GrupoTributacao> listaGrupos) throws SQLException {
+    private void inserirNovosGruposDeTributacaoBancoPrincipal(List<GrupoTributacao> listaGrupos) throws SQLException {
+        progressBarDescricao.setValue(80);
+        progressBarDescricao.setString("Criando novos Grupos de Tributação");
+
+        int totalGrupos = listaGrupos.size();
+        int progresso = 0;
+        
         try (PreparedStatement pstm = conn.prepareStatement("INSERT INTO grupotributacao(nome, uf, id_estado, id_ncm, id_cest, id_cst, id_cfop, id_cfop_bonificacao, id_cfop_devolucao, id_cfop_transferencia, ncm, origem, genero, icms_saida_aliquota, icms_saida_aliquota_red_base_calc, icms_fcp_aliquota, icms_observacao_fiscal, icms_difererimento_aliquota, icms_desonerado_aliquota, icms_st_aliquota, icms_st_red_base_calc_aliquota, icms_isencao_aliquota, icms_iva, icms_codigo_beneficio_fiscal, pis_saida, pis_saida_aliquota, pis_nri, cofins_saida, cofins_saida_aliquota, cofins_nri, ipi_cst, ipi_ex, ipi_aliquota, ipi_codigo_enquadramento, preco_cmv, imendes_codigo_grupo, imendes_codigo_regra, imendes_datahora_alteracao, datahora_alteracao, ativo) "
                 + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", Statement.RETURN_GENERATED_KEYS)) {
 
@@ -137,11 +183,21 @@ public class ProdutoDao {
 
                 listaGrupoDeTributacao.add(1);
                 System.out.println("NOVO GRUPO: " + grupo);
+                
+                // Atualiza a barra de progresso de valor
+                progresso++;
+                progressBarValor.setValue((int) Math.round((double) progresso / totalGrupos * 100));
             }
         }
     }
 
-    public void inserirNovosNCMs(List<Ncm> listaDeNcms) throws SQLException {
+    private void inserirNovosNCMs(List<Ncm> listaDeNcms) throws SQLException {
+        progressBarDescricao.setValue(60);
+        progressBarDescricao.setString("Importando novos NCMs");
+
+        int totalNcms = listaDeNcms.size();
+        int progresso = 0;
+        
         try (PreparedStatement pstm = conn.prepareStatement("INSERT INTO ncm(codigo, ex, descricao, aliquota_nacional, aliquota_internacional, aliquota_estadual, aliquota_municipal, vigenciainicio, vigenciafim, chave, versao, ativo) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
 
@@ -174,11 +230,20 @@ public class ProdutoDao {
 
                 listaNcm.add(1);
                 System.out.println("NOVO NCM: " + ncm);
+                
+                progresso++;
+                progressBarValor.setValue((int) Math.round((double) progresso / totalNcms * 100));
             }
         }
     }
 
-    public void inserirNovosCESTs(List<Cest> listaCests) throws SQLException {
+    private void inserirNovosCESTs(List<Cest> listaCests) throws SQLException {
+        progressBarDescricao.setValue(40);
+        progressBarDescricao.setString("Importando novos CESTs");
+
+        int totalCests = listaCests.size();
+        int progresso = 0;
+
         try (PreparedStatement pstm = conn.prepareStatement("INSERT INTO cest(cest, ncm, descricao) "
                 + "VALUES (?, ?, ?);", Statement.RETURN_GENERATED_KEYS)) {
 
@@ -202,11 +267,15 @@ public class ProdutoDao {
 
                 listaCest.add(1);
                 System.out.println("NOVO CEST: " + cest);
+
+                progresso++;
+                progressBarValor.setValue((int) Math.round((double) progresso / totalCests * 100));
             }
         }
     }
 
     private void updateProdutosIdNCM() throws SQLException {
+        progressBarDescricao.setValue(82);
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
                 + "INNER JOIN tributacaotemp pp ON pp.id_produto = p.id "
@@ -221,6 +290,7 @@ public class ProdutoDao {
     }
 
     private void updateProdutosIdCEST() throws SQLException {
+        progressBarDescricao.setValue(84);
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
                 + "INNER JOIN tributacaotemp pp ON pp.id_produto = p.id "
@@ -235,6 +305,7 @@ public class ProdutoDao {
     }
 
     private void updateProdutosIdCST() throws SQLException {
+        progressBarDescricao.setValue(86);
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
                 + "INNER JOIN tributacaotemp t ON t.id_produto = p.id "
@@ -249,6 +320,7 @@ public class ProdutoDao {
     }
 
     private void updateProdutosIdCFOP() throws SQLException {
+        progressBarDescricao.setValue(88);
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
                 + "INNER JOIN tributacaotemp pp ON pp.id_produto = p.id "
@@ -263,6 +335,7 @@ public class ProdutoDao {
     }
 
     private void updateProdutosPisEAliquota() throws SQLException {
+        progressBarDescricao.setValue(90);
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
                 + "INNER JOIN tributacaotemp t ON t.id_produto = p.id "
@@ -277,6 +350,7 @@ public class ProdutoDao {
     }
 
     private void updateProdutosCofinsEAliquota() throws SQLException {
+        progressBarDescricao.setValue(92);
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
                 + "INNER JOIN tributacaotemp t ON t.id_produto = p.id "
@@ -291,6 +365,7 @@ public class ProdutoDao {
     }
 
     private void updateProdutosIpiEAliquota() throws SQLException {
+        progressBarDescricao.setValue(94);
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
                 + "INNER JOIN tributacaotemp t ON t.id_produto = p.id "
@@ -305,6 +380,7 @@ public class ProdutoDao {
     }
 
     private void updateProdutosOrigem() throws SQLException {
+        progressBarDescricao.setValue(96);
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
                 + "INNER JOIN tributacaotemp t ON t.id_produto = p.id "
@@ -318,6 +394,7 @@ public class ProdutoDao {
     }
 
     private void updateProdutosGenero() throws SQLException {
+        progressBarDescricao.setValue(98);
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
                 + "INNER JOIN tributacaotemp t ON t.id_produto = p.id "
@@ -331,6 +408,7 @@ public class ProdutoDao {
     }
 
     private void updateProdutosIdGrupoTributacao() throws SQLException {
+        progressBarDescricao.setValue(100);
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
                 + "INNER JOIN grupotributacao g on g.id_cst = p.id_cst "
@@ -359,4 +437,5 @@ public class ProdutoDao {
     private void ncmsInseridos() {
         TelaInicial.getLog("NCM : " + listaNcm.size());
     }
+
 }
