@@ -26,6 +26,7 @@ import lc_tributacao.model.entities.Empresa;
 import lc_tributacao.model.entities.GrupoTributacao;
 import lc_tributacao.model.entities.Ncm;
 import lc_tributacao.model.entities.Produto;
+import static lc_tributacao.util.DataHora.getDataHoraAtualFormatoBackup;
 import static lc_tributacao.util.LogoPrincipal.getLogoPrincipal;
 import static lc_tributacao.util.Versao.getVersaoPrograma;
 
@@ -204,11 +205,10 @@ public class TelaInicial extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnImportarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImportarActionPerformed
+        String dataHora = getDataHoraAtualFormatoBackup();
         if (chamarTelaImportar()) {
-            criarTabelaTemp();
-            if(importarProdutosDoExcel()) {
-               System.out.println("Produtos do Excel importados"); 
-            }
+            criarTabelaTemp(dataHora);
+            importarProdutosDoExcel();
         }
     }//GEN-LAST:event_btnImportarActionPerformed
 
@@ -256,7 +256,7 @@ public class TelaInicial extends javax.swing.JFrame {
         }
     }
 
-    private boolean importarProdutosDoExcel() {
+    private void importarProdutosDoExcel() {
         if (!filePath.isEmpty()) {
             try {
                 ProdutoDao prodDao = new ProdutoDao(conn);
@@ -264,8 +264,6 @@ public class TelaInicial extends javax.swing.JFrame {
                 List<Produto> listaDeProdutos = prodServic.getProdutosDoArquivoExcel();
 
                 prodDao.iniciarProcesso(listaDeProdutos, obterCestComBaseNosProdutos(listaDeProdutos), obterNcmComBaseNosProdutos(listaDeProdutos), obterGruposTributacaoComBaseNosProdutosDaEmpresa(listaDeProdutos));
-
-                return true;
 
             } catch (FileNotFoundException e) {
                 getLog("\n**** ATENÇÃO **** \nArquivo não encontrado: " + e.getMessage());
@@ -284,8 +282,6 @@ public class TelaInicial extends javax.swing.JFrame {
                 e.printStackTrace();
             }
         }
-
-        return false;
     }
 
     private void exportarProdutosParaXls() {
@@ -319,11 +315,12 @@ public class TelaInicial extends javax.swing.JFrame {
         return new NcmDao(conn).obterCestsComBaseNosProdutos(listaDeProdutos);
     }
 
-    private void criarTabelaTemp() {
+    private void criarTabelaTemp(String dataHora) {
+
         boolean deletarTabelaTemp = true;
 
         try {
-            new BancoDadosService(conn, deletarTabelaTemp);
+            new BancoDadosService(conn, deletarTabelaTemp, dataHora);
 
         } catch (SQLException e) {
             getLog("\n**** ATENÇÃO ****\nErro ao criar tabela temporaria dos produtos: " + e.getMessage());

@@ -5,9 +5,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import static lc_tributacao.controller.conexao.GenericMysqlDAO.dataBase;
+import static lc_tributacao.controller.conexao.GenericMysqlDAO.ip;
 import static lc_tributacao.controller.conexao.GenericMysqlDAO.senha;
 import static lc_tributacao.controller.conexao.GenericMysqlDAO.usuario;
-import lc_tributacao.view.TelaInicial;
+import static lc_tributacao.view.TelaInicial.getLog;
 
 /**
  *
@@ -16,14 +17,17 @@ import lc_tributacao.view.TelaInicial;
 public class BancoDadosService {
 
     private Connection conn = null;
+    private final String dataHora;
 
-    public BancoDadosService(Connection conn, boolean podeDeletarTabelaTemp) throws SQLException, IOException, InterruptedException {
+    public BancoDadosService(Connection conn, boolean podeDeletarTabelaTemp, String dataHora) throws SQLException, IOException, InterruptedException {
         this.conn = conn;
+        this.dataHora = dataHora;
+
         if (podeDeletarTabelaTemp) {
             deletarTabelaTributacaoTemp();
             criarTabelaTributacaoTemp();
             backupTabelasProdutosEGrupoTributacaoBancoPrincipal();
-        } 
+        }
     }
 
     private void criarTabelaTributacaoTemp() throws SQLException {
@@ -55,7 +59,7 @@ public class BancoDadosService {
     }
 
     private void backupTabelasProdutosEGrupoTributacaoBancoPrincipal() throws IOException, InterruptedException {
-        String comando = String.format("mysqldump --host=localhost --user=" + usuario + " --password=" + senha + " " + dataBase + " produto grupotributacao > produtoEgrupotributacao.sql");
+        String comando = String.format("mysqldump --host=" + ip + " --user=" + usuario + " --password=" + senha + " " + dataBase + " produto grupotributacao > BKPprodutoEgrupotributacao" + dataHora + ".sql");
 
         ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", comando);
         processBuilder.redirectErrorStream(true);
@@ -64,10 +68,10 @@ public class BancoDadosService {
         int exitCode = process.waitFor();
 
         if (exitCode == 0) {
-            TelaInicial.getLog("\n**** BACKUP ****\nCaminho: C:\\LC sistemas - Softhouse\\produtoEgrupotributacao.sql");
+            getLog("\n**** BACKUP ****\nCaminho: C:\\LC sistemas - Softhouse\\produtoEgrupotributacao.sql");
             System.out.println("Backup criado com sucesso.");
         } else {
-            TelaInicial.getLog("**** Erro ao criar o backup ****");
+            getLog("**** Erro ao criar o backup ****");
         }
     }
 

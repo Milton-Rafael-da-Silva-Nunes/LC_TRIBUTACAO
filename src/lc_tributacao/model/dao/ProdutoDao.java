@@ -50,7 +50,7 @@ public class ProdutoDao {
                     inserirNovosNCMs(listaDeNcms);
                     inserirNovosGruposDeTributacaoBancoPrincipal(listaGrupos);
                     executarAcoesNoBancoPrincipal();
-                    JOptionPane.showMessageDialog(null, "<html><b>Produtos atualizados com sucesso</b>!", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Produtos atualizados com sucesso!", getVersaoPrograma(), JOptionPane.INFORMATION_MESSAGE);
                 } catch (Exception e) {
                     e.printStackTrace();
                     System.exit(0);
@@ -81,7 +81,7 @@ public class ProdutoDao {
 
     private void InserirProdutosNaTabelaTemp(List<Produto> listaProdutos) throws SQLException {
         progressBarDescricao.setValue(20);
-        progressBarDescricao.setString("Importando produtos");
+        progressBarDescricao.setString("Importando produtos do arquivo Excel");
 
         int totalProdutos = listaProdutos.size();
         int progresso = 0;
@@ -409,6 +409,7 @@ public class ProdutoDao {
 
     private void updateProdutosIdGrupoTributacao() throws SQLException {
         progressBarDescricao.setValue(100);
+        progressBarDescricao.setString("Atualização concluída!");
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
                 + "INNER JOIN grupotributacao g on g.id_cst = p.id_cst "
