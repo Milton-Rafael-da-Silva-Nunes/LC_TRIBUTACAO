@@ -17,11 +17,11 @@ import static lc_tributacao.view.TelaInicial.getLog;
 public class BancoDadosService {
 
     private Connection conn = null;
-    private final String dataHora;
+    private final String dataHoraBKP;
 
-    public BancoDadosService(Connection conn, boolean podeDeletarTabelaTemp, String dataHora) throws SQLException, IOException, InterruptedException {
+    public BancoDadosService(Connection conn, boolean podeDeletarTabelaTemp, String dataHoraBKP) throws SQLException, IOException, InterruptedException {
         this.conn = conn;
-        this.dataHora = dataHora;
+        this.dataHoraBKP = dataHoraBKP;
 
         if (podeDeletarTabelaTemp) {
             deletarTabelaTributacaoTemp();
@@ -59,7 +59,7 @@ public class BancoDadosService {
     }
 
     private void backupTabelasProdutosEGrupoTributacaoBancoPrincipal() throws IOException, InterruptedException {
-        String comando = String.format("mysqldump --host=" + ip + " --user=" + usuario + " --password=" + senha + " " + dataBase + " produto grupotributacao > BKPprodutoEgrupotributacao" + dataHora + ".sql");
+        String comando = String.format("mysqldump --host=" + ip + " --user=" + usuario + " --password=" + senha + " " + dataBase + " produto grupotributacao > BKPprodutoEgrupotributacao" + dataHoraBKP + ".sql");
 
         ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", comando);
         processBuilder.redirectErrorStream(true);

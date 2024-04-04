@@ -205,9 +205,9 @@ public class TelaInicial extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnImportarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImportarActionPerformed
-        String dataHora = getDataHoraAtualFormatoBackup();
+        String dataHoraBKP = getDataHoraAtualFormatoBackup();
         if (chamarTelaImportar()) {
-            criarTabelaTemp(dataHora);
+            criarTabelaTemp(dataHoraBKP);
             importarProdutosDoExcel();
         }
     }//GEN-LAST:event_btnImportarActionPerformed
@@ -278,7 +278,7 @@ public class TelaInicial extends javax.swing.JFrame {
                 getLog("\n**** ATENÇÃO **** \nErro ao atualizar banco principal de produtos: " + e.getMessage());
                 e.printStackTrace();
             } catch (IllegalStateException e) {
-                getLog("\n**** ATENÇÃO **** \nErro inesperado: " + e.getMessage());
+                getLog("\n**** ATENÇÃO **** \nAção interrompida inesperadamente: " + e.getMessage());
                 e.printStackTrace();
             }
         }
