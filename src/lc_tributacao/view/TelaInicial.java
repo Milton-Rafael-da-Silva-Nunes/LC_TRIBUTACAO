@@ -280,6 +280,9 @@ public class TelaInicial extends javax.swing.JFrame {
             } catch (IllegalStateException e) {
                 getLog("\n**** ATENÇÃO **** \nAção interrompida inesperadamente: " + e.getMessage());
                 e.printStackTrace();
+            } catch (Exception e) {
+                getLog("\n**** ATENÇÃO **** \nErro inesperado: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
