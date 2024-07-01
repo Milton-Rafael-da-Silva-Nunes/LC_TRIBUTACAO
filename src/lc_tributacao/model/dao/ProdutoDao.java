@@ -77,6 +77,8 @@ public class ProdutoDao {
         updateProdutosCofinsEAliquota();
         updateProdutosIpiEAliquota();
         updateProdutosIdGrupoTributacao();
+        updateProdutosAliquotaIcms();
+        updateProdutosAliquotaIcmsReducaoBaseCalculo();
     }
 
     private void InserirProdutosNaTabelaTemp(List<Produto> listaProdutos) throws SQLException {
@@ -380,7 +382,7 @@ public class ProdutoDao {
     }
 
     private void updateProdutosOrigem() throws SQLException {
-        progressBarDescricao.setValue(96);
+        progressBarDescricao.setValue(95);
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
                 + "INNER JOIN tributacaotemp t ON t.id_produto = p.id "
@@ -394,7 +396,7 @@ public class ProdutoDao {
     }
 
     private void updateProdutosGenero() throws SQLException {
-        progressBarDescricao.setValue(98);
+        progressBarDescricao.setValue(96);
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
                 + "INNER JOIN tributacaotemp t ON t.id_produto = p.id "
@@ -408,7 +410,7 @@ public class ProdutoDao {
     }
 
     private void updateProdutosIdGrupoTributacao() throws SQLException {
-        progressBarDescricao.setValue(100);
+        progressBarDescricao.setValue(97);
         progressBarDescricao.setString("Atualização concluída!");
         try (PreparedStatement pstm = conn.prepareStatement(
                 "UPDATE produto p "
@@ -423,7 +425,34 @@ public class ProdutoDao {
 
             int resultado = pstm.executeUpdate();
             TelaInicial.getLog("GRUPO TRIBUTACAO: " + resultado);
+        }
+    }
+    
+    private void updateProdutosAliquotaIcms() throws SQLException {
+        progressBarDescricao.setValue(98);
+        progressBarDescricao.setString("Atualização concluída!");
+        try (PreparedStatement pstm = conn.prepareStatement(
+                "UPDATE produto p "
+                + "INNER JOIN tributacaotemp g on g.id_produto = p.id "
+                + "SET p.trib_icmsaliqsaida = g.icms_aliq "
+                + "WHERE p.trib_icmsaliqsaida != g.icms_aliq;")) {
 
+            int resultado = pstm.executeUpdate();
+            TelaInicial.getLog("ALIQUOTA ICMS: " + resultado);
+        }
+    }
+    
+    private void updateProdutosAliquotaIcmsReducaoBaseCalculo() throws SQLException {
+        progressBarDescricao.setValue(100);
+        progressBarDescricao.setString("Atualização concluída!");
+        try (PreparedStatement pstm = conn.prepareStatement(
+                "UPDATE produto p "
+                + "INNER JOIN tributacaotemp g on g.id_produto = p.id "
+                + "SET p.trib_icmsaliqredbasecalcsaida = g.icms_aliq_red_bc "
+                + "WHERE p.trib_icmsaliqredbasecalcsaida != g.icms_aliq_red_bc;")) {
+
+            int resultado = pstm.executeUpdate();
+            TelaInicial.getLog("ALIQUOTA ICMS RED BC: " + resultado);
         }
     }
 

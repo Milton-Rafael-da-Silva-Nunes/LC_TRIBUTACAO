@@ -198,7 +198,7 @@ public class ProdutoImportExcelService {
         } else {
             produto.setIcmsAliqRedBc(0.0);
         }
-
+        
         return produto;
     }
 
