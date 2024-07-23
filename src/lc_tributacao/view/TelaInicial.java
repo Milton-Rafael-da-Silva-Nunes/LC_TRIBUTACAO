@@ -27,7 +27,6 @@ import lc_tributacao.model.entities.GrupoTributacao;
 import lc_tributacao.model.entities.Ncm;
 import lc_tributacao.model.entities.Produto;
 import static lc_tributacao.util.DataHora.getDataHoraAtualFormatoBackup;
-import static lc_tributacao.util.LogoPrincipal.getLogoPrincipal;
 import static lc_tributacao.util.Versao.getVersaoPrograma;
 
 /**
@@ -41,7 +40,6 @@ public class TelaInicial extends javax.swing.JFrame {
 
     public TelaInicial() throws Exception {
         initComponents();
-        getLogoPrincipal();
         lblCaminhoArq.setText(" Ex: Documentos\\AJUSTE - TRIBUTARIO.xls");
         lblCaminhoArq.setForeground(Color.GRAY);
     }
@@ -72,6 +70,7 @@ public class TelaInicial extends javax.swing.JFrame {
         jPanel1.setBackground(new java.awt.Color(102, 102, 102));
 
         lblImg.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        lblImg.setIcon(new javax.swing.ImageIcon(getClass().getResource("/lc_tributacao/imagem/novaLogoLC.png"))); // NOI18N
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
