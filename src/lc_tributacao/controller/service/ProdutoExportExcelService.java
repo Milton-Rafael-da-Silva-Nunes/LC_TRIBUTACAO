@@ -74,6 +74,7 @@ public class ProdutoExportExcelService {
             cabecalho.createCell(12).setCellValue("ALIQ_COFINS");
             cabecalho.createCell(13).setCellValue("ALIQ_IPI");
             cabecalho.createCell(14).setCellValue("ICMS_ALIQ");
+            cabecalho.createCell(15).setCellValue("ICMS_ALIQ_RED_BC");
 
             for (int i = 0; i < linhas; i++) {
                 progressBarValor.setValue(i + 1);
